@@ -1,0 +1,165 @@
+---
+title: "Introduction to the ctrailsgov Package"
+author: Taylor Arnold
+output:
+  rmarkdown::html_vignette:
+    css: "note-style.css"
+  vignette: >
+    %\VignetteIndexEntry{Introduction to the ctrailsgov Package}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+---
+
+# Introduction to the ctrailsgov Package
+
+This vignette gives a very brief overview of the current package. To start,
+we load the package into R.
+
+```{r, message=FALSE}
+library(ctrialsgov)
+```
+
+In the next few sections, we see how to setup the data set, query it, and then
+visualize the output.
+
+## Create the Data
+
+Before querying the ClinicalTrials.gov data, we need to load a pre-processed
+version of the data into R. There are three ways to do this. If you have
+installed a copy of the data set locally into PostGRES, the data can be
+created from scratch with the following block of code (it will take a couple
+of minutes to finish):
+
+```{r, eval=FALSE}
+library(DBI)
+library(RPostgreSQL)
+
+drv <- dbDriver('PostgreSQL')
+con <- dbConnect(drv, dbname="aact")
+ctgov_create_data(con)
+```
+
+Alternatively, we can download a static version of the data from GitHub and
+load this into R without needing the setup a local version of the database.
+This will be cached locally so that it can be re-loaded without downloading
+each time. To download and load this data, use the following:
+**[the data is currently included with the package rather than downloaded]**
+
+```{r, eval=FALSE}
+ctgov_load_cache()
+```
+
+Finally, we can load a small sample dataset (2% of the total) that is included
+with the package itself using the following:
+
+```{r}
+ctgov_load_sample()
+```
+
+This is the version of the data that is used in most of the tests, examples,
+and in this vignette.
+
+## Querying the Data
+
+The primary function for querying the dataset is called `ctgov_query`. It can
+be called after using any of the functions in the previous section. Here
+are a few examples of how the function works. We will see a few examples here;
+see the help pages for a complete list of options.
+
+There are a number of fields in the data that use exact matches of categories.
+Here, for example, we find the interventional studies:
+
+```{r}
+ctgov_query(study_type = "Interventional")
+```
+
+Or, all of the interventional studies that have a primary industry sponsor:
+
+```{r}
+ctgov_query(study_type = "Interventional", sponsor_type = "Industry")
+```
+
+A few fields have continuous values that can be searched by giving a vector
+with two values. The results return any values that fall between the lower
+bound (first value) and the upper bound (second value). Here, we find the
+studies that have between 40 and 42 patients enrolled in them:
+
+```{r}
+ctgov_query(enrollment_range = c(40, 42))
+```
+
+Setting one end of the range to missing avoids searching for that end of the
+range. For example, the following finds any studies with 1000 or more patients.
+
+```{r}
+ctgov_query(enrollment_range = c(1000, NA))
+```
+
+Similarly, we can give a range of dates. These are given in the form of strings
+as "YYYY-MM-DD":
+
+```{r}
+ctgov_query(date_range = c("2020-01-01", "2020-02-01"))
+```
+
+Finally, we can also search free text fields using keywords. The following for
+example finds and study that includes the phrase "lung cancer" (ignoring
+case) in the description field:
+
+```{r}
+ctgov_query(description_kw = "lung cancer")
+```
+
+We can search two terms at once as well, by default it finds things that match
+at least one of the terms:
+
+```{r}
+ctgov_query(description_kw = c("lung cancer", "colon cancer"))
+```
+
+But the `match_all` flag can be set to search for both terms at the same time
+(here, that returns no matches):
+
+```{r}
+ctgov_query(description_kw = c("lung cancer", "colon cancer"), match_all = TRUE)
+```
+
+Other keyword fields include `official_title_kw`, `source_kw` and `criteria_kw`.
+
+Any of the options can be combined as needed.
+
+```{r}
+ctgov_query(
+  description_kw = "cancer",
+  enrollment_range = c(100, 200),
+  date_range = c("2019-01-01", "2020-02-01")
+)
+```
+
+Finally, we can also pass a current version of the data set to the query
+function, rather than starting with the full data set. This is useful when
+you want to combine queries in a more complex way. For example, this is
+equivalent to the above:
+
+```{r, message=FALSE}
+library(dplyr)
+
+ctgov_query() %>%
+  ctgov_query(description_kw = "cancer") %>%
+  ctgov_query(enrollment_range = c(100, 200)) %>%
+  ctgov_query(date_range = c("2019-01-01", "2020-02-01"))
+```
+
+## Visualizing the output
+
+The package (will) also contain a number of tools for visualizing the output.
+Here is one example:
+
+```{r}
+ctgov_query(
+  description_kw = "cancer",
+  enrollment_range = c(100, 200),
+  date_range = c("2019-01-01", "2020-02-01")
+) %>%
+  ctgov_plot_timeline(df)
+```

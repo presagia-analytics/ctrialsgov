@@ -1,0 +1,35 @@
+p {
+  text-align: justify;
+  text-justify: inter-word;
+  font-size: 18px;
+}
+
+h1 { font-size: 38px }
+h2 { font-size: 30px }
+h3 { font-size: 22px }
+
+li {
+  text-align: justify;
+  text-justify: inter-word;
+  font-size: 18px;
+}
+
+.section .sourceCode {
+  border-radius: 15px;
+}
+
+.sourceCode {
+  font-size: 18px;
+}
+
+code, .section pre {
+  font-size: 18px !important;
+}
+
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  border: 1px solid black;
+}
