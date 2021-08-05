@@ -18,7 +18,6 @@
 #' @importFrom stringi stri_trim stri_replace_all
 #' @importFrom lubridate today
 ctgov_create_data <- function(con, verbose = TRUE) {
-  assert(class(con) == "PostgreSQLConnection")
   assert(is.logical(verbose) & length(verbose) == 1L)
 
   # Save the connection in case needed later
