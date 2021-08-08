@@ -25,43 +25,89 @@ ctgov_create_data <- function(con, verbose = TRUE) {
 
   # Grab the data
   cmsg(verbose, "[%s] LOADING DATA TABLES\n", isotime())
-  tbl_study <- tibble::as_tibble(DBI::dbGetQuery(con,
-    paste(c("select nct_id, ",
-      "start_date, phase, enrollment, brief_title, official_title, ",
-      "primary_completion_date, study_type from studies;"),
-      collapse = "")))
+  tbl_study <- tibble::as_tibble(
+    DBI::dbGetQuery(
+      con,
+      sprintf(
+        paste(c("select nct_id, ",
+          "start_date, phase, enrollment, brief_title, official_title, ",
+          "primary_completion_date, study_type from %sstudies;"),
+          collapse = ""),
+        format_schema()
+      )
+    )
+  )
+
   tbl_conds <- tibble::as_tibble(DBI::dbGetQuery(
-    con, "select nct_id, name from conditions;"
+    con, 
+    sprintf("select nct_id, name from %sconditions;", format_schema())
   ))
+
   tbl_inter <- tibble::as_tibble(
     DBI::dbGetQuery(
       con,
-      "select nct_id, intervention_type, name, description from interventions;"
+      sprintf(
+        paste0(
+          "select nct_id, intervention_type, name, description from ",
+          "%sinterventions;"
+        ),
+        format_schema()
+      )
     )
   )
+
   tbl_bfsum <- tibble::as_tibble(
     DBI::dbGetQuery(
-      con, "select nct_id, description from brief_summaries;"
+      con, 
+      sprintf(
+        "select nct_id, description from %sbrief_summaries;", 
+        format_schema()
+      )
     )
   )
+
   tbl_idinf <- tibble::as_tibble(
-    DBI::dbGetQuery(con, "select * from id_information;")
+    DBI::dbGetQuery(
+      con, 
+      sprintf("select * from %sid_information;", format_schema())
+    )
   )
+
   tbl_spons <- tibble::as_tibble(
     DBI::dbGetQuery(
-      con, "select * from sponsors where lead_or_collaborator = 'lead';"
+      con, 
+      sprintf(
+        "select * from %ssponsors where lead_or_collaborator = 'lead';",
+        format_schema()
+      )
     )
   )
-  tbl_desig <- tibble::as_tibble(DBI::dbGetQuery(con,
-      paste(c("select nct_id, allocation, intervention_model, ",
-        "observational_model, primary_purpose, time_perspective, masking ",
-        "masking_description, intervention_model_description ",
-        "from designs;"),
-        collapse = "")))
-  tbl_eligb <- tibble::as_tibble(DBI::dbGetQuery(con,
-      paste(c("select nct_id, sampling_method, gender, minimum_age,  ",
-        "maximum_age, population, criteria from eligibilities;"),
-        collapse = "")))
+
+  tbl_desig <- tibble::as_tibble(
+    DBI::dbGetQuery(
+      con,
+      sprintf(
+        paste(c("select nct_id, allocation, intervention_model, ",
+          "observational_model, primary_purpose, time_perspective, masking ",
+          "masking_description, intervention_model_description ",
+          "from %sdesigns;"),
+          collapse = ""),
+        format_schema()
+      )
+    )
+  )
+  
+  tbl_eligb <- tibble::as_tibble(
+    DBI::dbGetQuery(
+      con,
+      sprintf(
+        paste(c("select nct_id, sampling_method, gender, minimum_age,  ",
+          "maximum_age, population, criteria from %seligibilities;"),
+          collapse = ""),
+        format_schema()
+      )
+    )
+  )
 
   # Create a few variables
   cmsg(verbose, "[%s] CREATE VARIABLES\n", isotime())

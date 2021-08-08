@@ -15,9 +15,9 @@ Authors@R: c(
          role = c("aut"),
          comment = c(ORCID = "http://orcid.org/0000-0003-1899-6662")))
 Maintainer: Taylor Arnold <tarnold2@richmond.edu>
-Description: Create and query database from the ClinicalTrials.gov,
-  specifically for Cancer clinical trials.
+Description: Create and query database from the ClinicalTrials.gov.
 License: MIT + file LICENSE
+Encoding: UTF-8
 Depends:
   R (>= 3.5.0)
 Imports:
@@ -38,5 +38,6 @@ Suggests:
   testthat (>= 3.0.0),
   covr
 LazyData: true
+LazyDataCompression: bzip2
 VignetteBuilder: knitr
 Config/testthat/edition: 3

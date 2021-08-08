@@ -35,7 +35,7 @@ library(DBI)
 library(RPostgreSQL)
 
 drv <- dbDriver('PostgreSQL')
-con <- dbConnect(drv, dbname="aact")
+con <- DBI::dbConnect(drv, dbname="aact")
 ctgov_create_data(con)
 ```
 

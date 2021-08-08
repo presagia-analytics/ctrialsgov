@@ -1,2 +1,5 @@
 ^doc$
 ^Meta$
+^README\.Rmd$
+^codecov\.yml$
+^docs$
