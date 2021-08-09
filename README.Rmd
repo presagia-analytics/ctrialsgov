@@ -22,16 +22,10 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-You can install the released version of ctrialsgov from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("ctrialsgov")
-```
-
 You can install the development version of ctrialsgov
 from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("presagia-analytics/clinical-trials-taylor")
+devtools::install_github("presagia-analytics/ctrialsgov")
 ```
