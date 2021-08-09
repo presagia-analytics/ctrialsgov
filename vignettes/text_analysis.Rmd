@@ -2,12 +2,7 @@
 title: "Text Analysis"
 author: Taylor Arnold
 output:
-  rmarkdown::html_vignette:
-    css: "note-style.css"
-  vignette: >
-    %\VignetteIndexEntry{Text Analysis}
-    %\VignetteEngine{knitr::rmarkdown}
-    %\VignetteEncoding{UTF-8}
+  html_document
 ---
 
 ## Setup
