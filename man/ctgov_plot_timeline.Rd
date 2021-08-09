@@ -27,11 +27,6 @@ ctgov_plot_timeline(
 (Default is "nct_id")}
 
 \item{color}{the column to be used for coloring. (Default is label_column)}
-
-\item{tooltip}{the tooltip to be shown. (Default is gantt_labeller(x))}
-
-\item{plotly}{should the visualization be rendered as a plotly object?
-(Default is FALSE)}
 }
 \description{
 Plot a Timeline for a Set of Clinical Trials

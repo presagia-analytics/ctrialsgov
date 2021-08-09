@@ -39,7 +39,8 @@ Suggests:
   knitr,
   testthat (>= 3.0.0),
   covr
+VignetteBuilder: 
+  knitr
 LazyData: true
 LazyDataCompression: bzip2
-VignetteBuilder: knitr
 Config/testthat/edition: 3
