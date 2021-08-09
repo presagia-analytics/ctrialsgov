@@ -1,0 +1,92 @@
+---
+title: "Text Analysis"
+author: Taylor Arnold
+output:
+  rmarkdown::html_vignette:
+    css: "note-style.css"
+  vignette: >
+    %\VignetteIndexEntry{Text Analysis}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+---
+
+## Setup
+
+To start, we will load the package and the sample dataset. The same code below
+can be used with the entire dataset, but may be a bit slower.
+
+```{r, message=FALSE}
+library(ctrialsgov)
+library(dplyr)
+ctgov_load_sample()
+```
+
+## Keywords in Context
+
+The function `ctgov_kwic` highlights all of the occurances of a term within
+its context (the few words before and after the term occurs). For example, if
+we want to show the occurances of the term "bladder" in the titles of the
+interventional trials we can do this:
+
+```{r}
+z <- ctgov_query(study_type = "Interventional")
+ctgov_kwic("bladder", z$brief_title)
+```
+
+The function also has an option to include a title along with each occurance
+that is printed alongside each row. Here we will print the NCT id for each
+trial:
+
+```{r}
+z <- ctgov_query(study_type = "Interventional")
+ctgov_kwic("bladder", z$brief_title, z$nct_id)
+```
+
+There are some other options that can be used to change the way that the
+output is displayed. The default (shown above) prints the results out using
+the `cat` function. Other options return the results as a character vector of
+data frame, which are useful for further post-processing. There is also a
+flag `use_color` that prints the term in color rather than with pipes; it looks
+great in a terminal or RStudio but does not display correctly when knit to
+HTML.
+
+## TF-IDF
+
+We can use a technique called term frequence-inverse document frequency (TF-IDF)
+to determine the most important words in a collection of of text fields. To
+implement this in R we will use the `ctgov_tfidf` function:
+
+```{r}
+z <- ctrialsgov::ctgov_query()
+tfidf <- ctgov_tfidf(z$description)
+print(tfidf, n = 30)
+```
+
+The default takes the lower case version of the terms, but (particularly with
+acronyms) it may be better to preserve the capitalization of the terms. Here is
+how we can do that in this example:
+
+```{r}
+tfidf <- ctgov_tfidf(z$description, tolower = FALSE)
+print(tfidf, n = 30)
+```
+
+Any number of text fields can be passed to the `ctgov_tokens` function; all of
+the fields for a specific trial are pasted together and treated a single block
+of text.
+
+## Document Similarity
+
+
+
+```{r}
+#tokens <- ctgov_tokens(z$description)
+#token_counts <- ctgov_token_counts(tokens)
+#tfidf <- ctgov_tfidf(token_counts)
+
+#clusters <- smodels::sm_spectral_cluster(tfidf)
+```
+
+```{r}
+#z$brief_title[seq(110, 150)]
+```

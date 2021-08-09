@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • ctrialsgov</title>
+<title>Keywords in Context — ctgov_kwic • ctrialsgov</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,8 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Keywords in Context — ctgov_kwic" />
+<meta property="og:description" content="Take a" />
 
 
 
@@ -58,7 +59,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -115,96 +116,58 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Keywords in Context</h1>
+    
+    <div class="hidden name"><code>ctgov_kwic.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>Take a</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'>ctgov_kwic</span><span class='op'>(</span>
+  <span class='va'>term</span>,
+  <span class='va'>text</span>,
+  names <span class='op'>=</span> <span class='cn'>NULL</span>,
+  n <span class='op'>=</span> <span class='cn'>Inf</span>,
+  ignore_case <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  use_color <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  width <span class='op'>=</span> <span class='fl'>20L</span>,
+  output <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"cat"</span>, <span class='st'>"character"</span>, <span class='st'>"data.frame"</span><span class='op'>)</span>
+<span class='op'>)</span></pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="ctgov_create_data.html">ctgov_create_data()</a></code> </p>
-        </td>
-        <td><p>Initialize the connection</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ctgov_gantt_labeller.html">ctgov_gantt_labeller()</a></code> </p>
-        </td>
-        <td><p>Create a Gantt Labeler for Timeline Tooltips</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ctgov_kwic.html">ctgov_kwic()</a></code> </p>
-        </td>
-        <td><p>Keywords in Context</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ctgov_load_cache.html">ctgov_load_cache()</a></code> </p>
-        </td>
-        <td><p>Download and/or load cached data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ctgov_load_sample.html">ctgov_load_sample()</a></code> </p>
-        </td>
-        <td><p>Load sample dataset</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ctgov_plot_timeline.html">ctgov_plot_timeline()</a></code> </p>
-        </td>
-        <td><p>Plot a Timeline for a Set of Clinical Trials</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ctgov_query.html">ctgov_query()</a></code> </p>
-        </td>
-        <td><p>Query the ClinicalTrials.gov dataset</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ctgov_query_terms.html">ctgov_query_terms()</a></code> </p>
-        </td>
-        <td><p>Query the ClinicalTrials.gov dataset</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ctgov_schema.html">ctgov_schema()</a></code> </p>
-        </td>
-        <td><p>Get and Set the Default Schema</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="tbl_join_sample.html">tbl_join_sample</a></code> </p>
-        </td>
-        <td><p>Sample Clinical Trials Dataset</p></td>
-      </tr>
-    </tbody>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>term</th>
+      <td><p>search term as a string</p></td>
+    </tr>
+    <tr>
+      <th>text</th>
+      <td><p>vector of text to search</p></td>
+    </tr>
+    <tr>
+      <th>n</th>
+      <td><p>number of results to return; default is Inf</p></td>
+    </tr>
+    <tr>
+      <th>ignore_case</th>
+      <td><p>should search ignore case? default is TRUE</p></td>
+    </tr>
+    <tr>
+      <th>width</th>
+      <td><p>how many characters to show as context</p></td>
+    </tr>
     </table>
-  </div>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>a character vector of the search results</p>
+
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>

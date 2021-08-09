@@ -30,7 +30,9 @@ Imports:
   rlang,
   stringi,
   tibble,
-  DBI
+  DBI,
+  methods,
+  irlba
 RoxygenNote: 7.1.1
 Suggests:
   rmarkdown,

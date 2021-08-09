@@ -3,5 +3,6 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   introduction: introduction.html
-last_built: 2021-07-20T18:06Z
+  text_analysis: text_analysis.html
+last_built: 2021-08-09T13:31Z
 
