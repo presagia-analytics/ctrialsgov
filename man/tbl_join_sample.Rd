@@ -5,16 +5,6 @@
 \alias{tbl_join_sample}
 \title{Sample Clinical Trials Dataset}
 \description{
-Data frame containing a 2.5% random sample of clinical trials based on 
-a query where:
-}
-\details{
-1. `study_type` is "Interventional".
-2. `sponsor_type` is "Industry".
-3. `date_range` is trials from 2020-01-01 or newer.
-4. The `description` includes the keyword "cancer".
-5. `phase` is reported (not NA).
-6. `primary_purpose` is "Treatment".
-7. `minimum_age` is 18.
+Data frame containing a 2.5% random sample of clinical trials.
 }
 \keyword{data}
