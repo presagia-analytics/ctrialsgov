@@ -84,19 +84,32 @@ ctgov_plot_timeline <- function(
 #' @importFrom plotly ggplotly
 #' @export
 ctgov_to_plotly <- function(p) {
-  ggplotly(p, tooltip = "text")
-  # TODO: As Ryan about the following
-  # p$x$data[[1]]$customdata <-
-  #   paste0("https://clinicaltrials.gov/ct2/show/", x[['nct_id']])
-  # p <- onRender(
-  #   p,
-  #   "
-  #     function(el,x){
-  #     el.on('plotly_click', function(d) {
-  #     var websitelink = d.points[0].customdata;
-  #     window.open(websitelink);
-  #     });
-  #     }
-  #     "
-  # )
+  pp <- plotly::ggplotly(p, tooltip = "text")
+
+  # this gets the y-axis category values
+  cats <- pp$x$layout$yaxis$categoryarray
+
+  # there can be multiple layers to the plot - need to update all of them
+  for (ii in seq_along(pp$x$data)) {
+    # for geom_segment, each segment is indicated by three values:
+    #   start, end, and NA (for a break in between each line)
+    # the y value is an index to what we defined as "cats" above
+    # which is the trial id, so we grab that and add as a new variable
+    pp$x$data[[ii]]$customdata <- paste0("https://clinicaltrials.gov/ct2/show/",
+      cats[pp$x$data[[ii]]$y])
+  }
+
+  pp <- htmlwidgets::onRender(
+    pp,
+    "
+      function(el, x) {
+        el.on('plotly_click', function(d) {
+          var websitelink = d.points[0].customdata;
+          window.open(websitelink);
+        });
+      }
+    "
+  )
+
+  pp
 }
