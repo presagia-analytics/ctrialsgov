@@ -48,7 +48,7 @@ ctgov_gantt_labeller <- function(x) {
 #' @param tooltip the tooltips for each of trials. 
 #' (Default is `ctgov_gantt_labeller(x)`).
 #'
-#' @importFrom ggplot2 ggplot aes geom_segment enexpr xlab ylab guides
+#' @importFrom ggplot2 ggplot aes geom_tile enexpr xlab ylab guides
 #' guide_legend
 #' @seealso ctgov_gantt_labeller
 #' @export
@@ -60,21 +60,18 @@ ctgov_plot_timeline <- function(
   color = label_column,
   tooltip = ctgov_gantt_labeller(x)) {
 
-  ggplot(
-      data = x,
-      aes(
-        x = enexpr(start_date),
-        xend = eval(as.name(completion_date)),
-        y = eval(as.name(label_column)),
-        yend = eval(as.name(label_column)),
-        color = eval(as.name(color)),
-        text = tooltip
-      )
-    ) +
-    geom_segment(size = 3) +
+  p <- ggplot(data = x,
+    aes(
+      x = enexpr(start_date),
+      y = eval(as.name(label_column)),
+      width = as.integer(eval(as.name(completion_date)) - enexpr(start_date)),
+      fill = eval(as.name(color)),
+      text = tooltip
+    )) +
+    geom_tile(height = 0.8) +
     ylab(label_column) +
     xlab("Date") +
-    guides(color = guide_legend(color))
+    guides(fill = guide_legend(color))
 }
 
 
@@ -89,22 +86,15 @@ ctgov_to_plotly <- function(p) {
   # this gets the y-axis category values
   cats <- pp$x$layout$yaxis$categoryarray
 
-  # there can be multiple layers to the plot - need to update all of them
-  for (ii in seq_along(pp$x$data)) {
-    # for geom_segment, each segment is indicated by three values:
-    #   start, end, and NA (for a break in between each line)
-    # the y value is an index to what we defined as "cats" above
-    # which is the trial id, so we grab that and add as a new variable
-    pp$x$data[[ii]]$customdata <- paste0("https://clinicaltrials.gov/ct2/show/",
-      cats[pp$x$data[[ii]]$y])
-  }
-
   pp <- htmlwidgets::onRender(
     pp,
     "
       function(el, x) {
         el.on('plotly_click', function(d) {
-          var websitelink = d.points[0].customdata;
+          // the trial id is found in d.points[0].yaxis.ticktext
+          // indexed by the data.y value (mean of first two)
+          var id = d.points[0].yaxis.ticktext[((d.points[0].data.y[0] + d.points[0].data.y[1]) / 2) - 1];
+          var websitelink = 'https://clinicaltrials.gov/ct2/show/' + id;
           window.open(websitelink);
         });
       }
