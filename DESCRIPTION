@@ -35,10 +35,11 @@ Imports:
   irlba
 RoxygenNote: 7.1.1
 Suggests:
-  rmarkdown,
+  covr,
   knitr,
+  rmarkdown,
   testthat (>= 3.0.0),
-  covr
+  usethis
 VignetteBuilder: 
   knitr
 LazyData: true

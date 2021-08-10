@@ -7,7 +7,7 @@
 ctgov_to_plotly(p)
 }
 \arguments{
-\item{tooltip}{the tooltip to be shown. (Default is gantt_labeller(x))}
+\item{p}{the plot returned by `ctgov_plot_timeline()`.}
 }
 \description{
 Convert a ctrialsgov Visualization to Plotly

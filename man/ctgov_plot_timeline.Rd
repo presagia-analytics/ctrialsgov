@@ -10,8 +10,7 @@ ctgov_plot_timeline(
   completion_date = "primary_completion_date",
   label_column = "nct_id",
   color = label_column,
-  tooltip = ctgov_gantt_labeller(x),
-  plotly = FALSE
+  tooltip = ctgov_gantt_labeller(x)
 )
 }
 \arguments{
@@ -27,7 +26,13 @@ ctgov_plot_timeline(
 (Default is "nct_id")}
 
 \item{color}{the column to be used for coloring. (Default is label_column)}
+
+\item{tooltip}{the tooltips for each of trials. 
+(Default is `ctgov_gantt_labeller(x)`).}
 }
 \description{
 Plot a Timeline for a Set of Clinical Trials
+}
+\seealso{
+ctgov_gantt_labeller
 }

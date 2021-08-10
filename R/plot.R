@@ -45,9 +45,12 @@ ctgov_gantt_labeller <- function(x) {
 #' @param label_column the column denoting the labels for the y-axis.
 #' (Default is "nct_id")
 #' @param color the column to be used for coloring. (Default is label_column)
+#' @param tooltip the tooltips for each of trials. 
+#' (Default is `ctgov_gantt_labeller(x)`).
 #'
 #' @importFrom ggplot2 ggplot aes geom_segment enexpr xlab ylab guides
 #' guide_legend
+#' @seealso ctgov_gantt_labeller
 #' @export
 ctgov_plot_timeline <- function(
   x,
@@ -55,8 +58,7 @@ ctgov_plot_timeline <- function(
   completion_date = "primary_completion_date",
   label_column = "nct_id",
   color = label_column,
-  tooltip = ctgov_gantt_labeller(x),
-  plotly = FALSE) {
+  tooltip = ctgov_gantt_labeller(x)) {
 
   ggplot(
       data = x,
@@ -78,7 +80,7 @@ ctgov_plot_timeline <- function(
 
 #' @title Convert a ctrialsgov Visualization to Plotly
 #'
-#' @param tooltip the tooltip to be shown. (Default is gantt_labeller(x))
+#' @param p the plot returned by `ctgov_plot_timeline()`.
 #' @importFrom plotly ggplotly
 #' @export
 ctgov_to_plotly <- function(p) {
