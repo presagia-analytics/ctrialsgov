@@ -101,7 +101,7 @@
 <span class="va">drv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dbi.r-dbi.org/reference/dbDriver.html">dbDriver</a></span><span class="op">(</span><span class="st">'PostgreSQL'</span><span class="op">)</span>
 <span class="va">con</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html">dbConnect</a></span><span class="op">(</span><span class="va">drv</span>, dbname<span class="op">=</span><span class="st">"aact"</span><span class="op">)</span>
 <span class="fu"><a href="../reference/ctgov_create_data.html">ctgov_create_data</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span></code></pre></div>
-<p>Alternatively, we can download a static version of the data from GitHub and load this into R without needing the setup a local version of the database. This will be cached locally so that it can be re-loaded without downloading each time. To download and load this data, use the following: <strong>[the data is currently included with the package rather than downloaded]</strong></p>
+<p>Alternatively, we can download a static version of the data from GitHub and load this into R without needing the setup a local version of the database. This will be cached locally so that it can be re-loaded without downloading each time. To download and load this data, use the following:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/ctgov_load_cache.html">ctgov_load_cache</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p>Finally, we can load a small sample dataset (2% of the total) that is included with the package itself using the following:</p>
@@ -340,7 +340,7 @@
   enrollment_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span><span class="op">)</span>,
   date_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"2019-01-01"</span>, <span class="st">"2020-02-01"</span><span class="op">)</span>
 <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="../reference/ctgov_plot_timeline.html">ctgov_plot_timeline</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="../reference/ctgov_plot_timeline.html">ctgov_plot_timeline</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p><img src="introduction_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 </div>

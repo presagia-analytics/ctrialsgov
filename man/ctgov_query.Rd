@@ -7,7 +7,7 @@
 ctgov_query(
   data = NULL,
   description_kw = NULL,
-  source_kw = NULL,
+  sponsor_kw = NULL,
   brief_title_kw = NULL,
   official_title_kw = NULL,
   criteria_kw = NULL,
@@ -42,8 +42,8 @@ loaded}
 intervention description field. Set to
 \code{NULL} to avoid searching this field.}
 
-\item{source_kw}{character vector of keywords to search in the
-source (the company that submitted the study).
+\item{sponsor_kw}{character vector of keywords to search in the
+sponsor (the company that submitted the study).
 Set to \code{NULL} to avoid searching this
 field.}
 

@@ -222,12 +222,12 @@ ctgov_load_cache <- function(force_download = FALSE) {
 
   # local and GitHub base links
   dname <- system.file("extdata", package = "ctrialsgov")
-  base_url <- paste0("https://github.com/presagia-analytics/",
-                     "ctrailsgov/blob/fdata/data-raw/data/")
+  base_url <- paste0("https://raw.githubusercontent.com/presagia-analytics/",
+                     "ctrialsgov/fdata/data-raw/data/")
 
   # file paths
   fp <- file.path(dname, sprintf("tbl_join_%02d.rds", seq_len(4L)))
-  up <- paste0(base_url, sprintf("data/tbl_join_%02d.rds", seq_len(4L)))
+  up <- paste0(base_url, sprintf("tbl_join_%02d.rds", seq_len(4L)))
 
   # download the files if needed
   for (j in seq_along(fp))

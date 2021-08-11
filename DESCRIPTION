@@ -2,7 +2,6 @@ Package: ctrialsgov
 Type: Package
 Title: Query Data from ClinicalTrials.gov
 Version: 0.2
-Date: 2021-05-24
 Authors@R: c(
   person(given = "Taylor",
            family = "Arnold",

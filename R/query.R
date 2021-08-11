@@ -16,8 +16,8 @@
 #'                                intervention description field. Set to
 #'                                \code{NULL} to avoid searching this field.
 #'
-#' @param source_kw               character vector of keywords to search in the
-#'                                source (the company that submitted the study).
+#' @param sponsor_kw              character vector of keywords to search in the
+#'                                sponsor (the company that submitted the study).
 #'                                Set to \code{NULL} to avoid searching this
 #'                                field.
 #'
@@ -126,7 +126,7 @@
 ctgov_query <- function(
   data = NULL,
   description_kw = NULL,
-  source_kw = NULL,
+  sponsor_kw = NULL,
   brief_title_kw = NULL,
   official_title_kw = NULL,
   criteria_kw = NULL,
@@ -154,7 +154,7 @@ ctgov_query <- function(
   ############################################################################
   # check query input types
   assert(is.null(description_kw) | is.character(description_kw))
-  assert(is.null(source_kw) | is.character(source_kw))
+  assert(is.null(sponsor_kw) | is.character(sponsor_kw))
   assert(is.null(brief_title_kw) | is.character(brief_title_kw))
   assert(is.null(official_title_kw) | is.character(official_title_kw))
   assert(is.null(intervention_desc_kw) | is.character(intervention_desc_kw))
@@ -209,6 +209,7 @@ ctgov_query <- function(
     match.arg(sampling_method, ol$sampling_method, TRUE)
   }
   if (!is.null(phase)) { match.arg(phase, ol$phase, TRUE) }
+  if (!is.null(gender)) { match.arg(phase, ol$gender, TRUE) }
   if (!is.null(sponsor_type)) { match.arg(sponsor_type, ol$sponsor_type, TRUE) }
 
   ############################################################################
@@ -255,6 +256,7 @@ ctgov_query <- function(
     z <- z[z$sampling_method %in% sampling_method,]
   }
   if (!is.null(phase)) { z <- z[z$phase %in% phase,] }
+  if (!is.null(gender)) { z <- z[z$gender %in% gender,] }
   if (!is.null(sponsor_type)) { z <- z[z$sponsor_type %in% sponsor_type,] }
 
   ############################################################################
@@ -309,9 +311,9 @@ ctgov_query <- function(
     ind <- search_kw(z$description, description_kw, ignore_case, match_all)
     z <- z[ind,]
   }
-  if (!is.null(source_kw))
+  if (!is.null(sponsor_kw))
   {
-    ind <- search_kw(z$source, source_kw, ignore_case, match_all)
+    ind <- search_kw(z$sponsor, sponsor_kw, ignore_case, match_all)
     z <- z[ind,]
   }
   if (!is.null(brief_title_kw))
@@ -334,7 +336,10 @@ ctgov_query <- function(
   if (!is.null(intervention_desc_kw))
   {
     ind <- search_kw(
-      z$intervention_desc, intervention_desc_kw, ignore_case, match_all
+      z$intervention_model_description,
+      intervention_desc_kw,
+      ignore_case,
+      match_all
     )
     z <- z[ind,]
   }
