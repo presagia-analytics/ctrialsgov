@@ -2,7 +2,7 @@
 #' @title Get and Set the Default Schema
 #'
 #' @description This function sets the schema in which tables in which
-#' the CT Trials tables reside. 
+#' the CT Trials tables reside.
 #'
 #' Get the current schema eiter of the following.
 #'
@@ -38,7 +38,7 @@ ctgov_get_schema <- function() {
 # Internal function used to format SQL queries with schemas.
 format_schema <- function() {
 
-  schema <- ctgov_get_schema() 
+  schema <- ctgov_get_schema()
   if (schema != "") {
     ncs <- nchar(schema)
     if (substr(schema, ncs, ncs) != ".") {
@@ -70,5 +70,3 @@ ctgov_set_schema <- function(schema) {
     }
   )
 }
-
-

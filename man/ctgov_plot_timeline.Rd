@@ -27,7 +27,7 @@ ctgov_plot_timeline(
 
 \item{color}{the column to be used for coloring. (Default is label_column)}
 
-\item{tooltip}{the tooltips for each of trials. 
+\item{tooltip}{the tooltips for each of trials.
 (Default is `ctgov_gantt_labeller(x)`).}
 }
 \description{

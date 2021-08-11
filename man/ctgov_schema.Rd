@@ -13,7 +13,7 @@ ctgov_schema(schema = NULL)
 }
 \description{
 This function sets the schema in which tables in which
-the CT Trials tables reside. 
+the CT Trials tables reside.
 
 Get the current schema eiter of the following.
 

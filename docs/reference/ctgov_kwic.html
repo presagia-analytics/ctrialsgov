@@ -40,7 +40,8 @@
 
 
 <meta property="og:title" content="Keywords in Context — ctgov_kwic" />
-<meta property="og:description" content="Take a" />
+<meta property="og:description" content="Takes a keyword and vector of text and returns instances where the keyword
+is found within the text." />
 
 
 
@@ -98,7 +99,7 @@
       <a href="../articles/introduction.html">Introduction to the ctrailsgov Package</a>
     </li>
     <li>
-      <a href="../articles/text_analysis.html">Text Analysis</a>
+      <a href="../articles/text_analysis.html">Text Analysis with the ctrailsgov Package</a>
     </li>
   </ul>
 </li>
@@ -124,7 +125,8 @@
     </div>
 
     <div class="ref-description">
-    <p>Take a</p>
+    <p>Takes a keyword and vector of text and returns instances where the keyword
+is found within the text.</p>
     </div>
 
     <pre class="usage"><span class='fu'>ctgov_kwic</span><span class='op'>(</span>
@@ -150,6 +152,10 @@
       <td><p>vector of text to search</p></td>
     </tr>
     <tr>
+      <th>names</th>
+      <td><p>optional vector of names corresponding to the text</p></td>
+    </tr>
+    <tr>
       <th>n</th>
       <td><p>number of results to return; default is Inf</p></td>
     </tr>
@@ -158,14 +164,26 @@
       <td><p>should search ignore case? default is TRUE</p></td>
     </tr>
     <tr>
+      <th>use_color</th>
+      <td><p>printed results include ASCII color escape sequences;
+these are set to <code>FALSE</code> because they only work
+correctly when returned in the terminal</p></td>
+    </tr>
+    <tr>
       <th>width</th>
       <td><p>how many characters to show as context</p></td>
+    </tr>
+    <tr>
+      <th>output</th>
+      <td><p>what kind of output to provide; default prints the
+results using <code>cat</code></p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a character vector of the search results</p>
+    <p>either nothing, character vector, or data frame depending on the
+         the requested return type</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

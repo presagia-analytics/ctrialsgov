@@ -1,6 +1,6 @@
 ---
-title: "Text Analysis"
-author: Taylor Arnold
+title: "Text Analysis with the ctrailsgov Package"
+author: Taylor Arnold and Michael J Kane
 output:
   rmarkdown::html_vignette:
     css: "note-style.css"
@@ -71,22 +71,45 @@ tfidf <- ctgov_tfidf(z$description, tolower = FALSE)
 print(tfidf, n = 30)
 ```
 
+We can also refine the results by including fewer rare terms. The argument
+`min_df` specifies the minimal proportion of documents that must contain a term
+for it to be returned as a keyword; the upper bound can also be specified
+with the argument `max_df`.
+
+```{r}
+tfidf <- ctgov_tfidf(z$description, min_df = 0.02, max_df = 0.2)
+print(tfidf, n = 30)
+```
+
 Any number of text fields can be passed to the `ctgov_tokens` function; all of
 the fields for a specific trial are pasted together and treated a single block
 of text.
 
 ## Document Similarity
 
-
-
-```{r}
-#tokens <- ctgov_tokens(z$description)
-#token_counts <- ctgov_token_counts(tokens)
-#tfidf <- ctgov_tfidf(token_counts)
-
-#clusters <- smodels::sm_spectral_cluster(tfidf)
-```
+Finally, the package also provides a function for producing similarity scores
+based on the text fields of the studies. Here, we will produce a similarity
+matrix based on the description field of Interventional, Industry-sponsored,
+Phase 2 trials.
 
 ```{r}
-#z$brief_title[seq(110, 150)]
+z <- ctgov_query(
+  study_type = "Interventional", sponsor_type = "Industry", phase = "Phase 2"
+)
+scores <- ctgov_text_similarity(z$description, min_df = 0, max_df = 0.1)
+dim(scores)
 ```
+
+The returned value is a square matrix with one row and one colum for each
+clinical trial in the set. We can use these scores to find studies that are
+particularly close to one another in the words used within their descriptions.
+Here for example we can see five studies that use similar terms in their
+descriptions:
+
+```{r}
+index <- order(scores[,100], decreasing = TRUE)[1:5]
+z$brief_title[index]
+```
+
+Further post-processing can be done with the similarity scores, such as spectral
+clustering and dimensionality reduction.

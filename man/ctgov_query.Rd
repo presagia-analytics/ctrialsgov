@@ -99,43 +99,43 @@ for either value to avoid filtering. Set to
 in the output. Set to \code{NULL} to avoid
 searching this field.}
 
-\item{allocation}{character vector of study types to include
+\item{allocation}{character vector of allocations to include
 in the output. Set to \code{NULL} to avoid
 searching this field.}
 
-\item{intervention_model}{character vector of study types to include
+\item{intervention_model}{character vector of interventions to include
 in the output. Set to \code{NULL} to avoid
 searching this field.}
 
-\item{observational_model}{character vector of study types to include
+\item{observational_model}{character vector of observations to include
 in the output. Set to \code{NULL} to avoid
 searching this field.}
 
-\item{primary_purpose}{character vector of study types to include
+\item{primary_purpose}{character vector of primary purposes to
+include in the output. Set to \code{NULL} to
+avoid searching this field.}
+
+\item{time_perspective}{character vector of time perspectives to
+include in the output. Set to \code{NULL} to
+avoid searching this field.}
+
+\item{masking_description}{character vector of maskings to include
 in the output. Set to \code{NULL} to avoid
 searching this field.}
 
-\item{time_perspective}{character vector of study types to include
+\item{sampling_method}{character vector of sampling methods to
+include in the output. Set to \code{NULL} to
+avoid searching this field.}
+
+\item{phase}{character vector of phases to include
 in the output. Set to \code{NULL} to avoid
 searching this field.}
 
-\item{masking_description}{character vector of study types to include
+\item{gender}{character vector of genders to include
 in the output. Set to \code{NULL} to avoid
 searching this field.}
 
-\item{sampling_method}{character vector of study types to include
-in the output. Set to \code{NULL} to avoid
-searching this field.}
-
-\item{phase}{character vector of study types to include
-in the output. Set to \code{NULL} to avoid
-searching this field.}
-
-\item{gender}{character vector of study types to include
-in the output. Set to \code{NULL} to avoid
-searching this field.}
-
-\item{sponsor_type}{character vector of study types to include
+\item{sponsor_type}{character vector of sponsor types to include
 in the output. Set to \code{NULL} to avoid
 searching this field.}
 

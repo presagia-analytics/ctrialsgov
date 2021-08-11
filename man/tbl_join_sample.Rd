@@ -5,6 +5,6 @@
 \alias{tbl_join_sample}
 \title{Sample Clinical Trials Dataset}
 \description{
-Data frame containing a 2.5% random sample of clinical trials.
+Data frame containing a 2.5 percent random sample of clinical trials.
 }
 \keyword{data}

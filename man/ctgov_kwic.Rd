@@ -20,15 +20,26 @@ ctgov_kwic(
 
 \item{text}{vector of text to search}
 
+\item{names}{optional vector of names corresponding to the text}
+
 \item{n}{number of results to return; default is Inf}
 
 \item{ignore_case}{should search ignore case? default is TRUE}
 
+\item{use_color}{printed results include ASCII color escape sequences;
+these are set to \code{FALSE} because they only work
+correctly when returned in the terminal}
+
 \item{width}{how many characters to show as context}
+
+\item{output}{what kind of output to provide; default prints the
+results using \code{cat}}
 }
 \value{
-a character vector of the search results
+either nothing, character vector, or data frame depending on the
+         the requested return type
 }
 \description{
-Take a
+Takes a keyword and vector of text and returns instances where the keyword
+is found within the text.
 }

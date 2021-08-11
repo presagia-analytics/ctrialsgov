@@ -39,7 +39,7 @@ ctgov_create_data <- function(con, verbose = TRUE) {
   )
 
   tbl_conds <- tibble::as_tibble(DBI::dbGetQuery(
-    con, 
+    con,
     sprintf("select nct_id, name from %sconditions;", format_schema())
   ))
 
@@ -58,9 +58,9 @@ ctgov_create_data <- function(con, verbose = TRUE) {
 
   tbl_bfsum <- tibble::as_tibble(
     DBI::dbGetQuery(
-      con, 
+      con,
       sprintf(
-        "select nct_id, description from %sbrief_summaries;", 
+        "select nct_id, description from %sbrief_summaries;",
         format_schema()
       )
     )
@@ -68,14 +68,14 @@ ctgov_create_data <- function(con, verbose = TRUE) {
 
   tbl_idinf <- tibble::as_tibble(
     DBI::dbGetQuery(
-      con, 
+      con,
       sprintf("select * from %sid_information;", format_schema())
     )
   )
 
   tbl_spons <- tibble::as_tibble(
     DBI::dbGetQuery(
-      con, 
+      con,
       sprintf(
         "select * from %ssponsors where lead_or_collaborator = 'lead';",
         format_schema()
@@ -96,7 +96,7 @@ ctgov_create_data <- function(con, verbose = TRUE) {
       )
     )
   )
-  
+
   tbl_eligb <- tibble::as_tibble(
     DBI::dbGetQuery(
       con,
@@ -223,7 +223,7 @@ ctgov_load_cache <- function(force_download = FALSE) {
   # local and GitHub base links
   dname <- system.file("extdata", package = "ctrialsgov")
   base_url <- paste0("https://github.com/presagia-analytics/",
-                     "clinical-trials-taylor/blob/main/")
+                     "ctrailsgov/blob/fdata/data-raw/data/")
 
   # file paths
   fp <- file.path(dname, sprintf("tbl_join_%02d.rds", seq_len(4L)))

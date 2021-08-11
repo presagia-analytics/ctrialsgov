@@ -1,6 +1,6 @@
 ---
 title: "Introduction to the ctrailsgov Package"
-author: Taylor Arnold
+author: Taylor Arnold and Michael J Kane
 output:
   rmarkdown::html_vignette:
     css: "note-style.css"
@@ -9,8 +9,6 @@ output:
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
 ---
-
-# Introduction to the ctrailsgov Package
 
 This vignette gives a very brief overview of the current package. To start,
 we load the package into R.
@@ -43,7 +41,6 @@ Alternatively, we can download a static version of the data from GitHub and
 load this into R without needing the setup a local version of the database.
 This will be cached locally so that it can be re-loaded without downloading
 each time. To download and load this data, use the following:
-**[the data is currently included with the package rather than downloaded]**
 
 ```{r, eval=FALSE}
 ctgov_load_cache()
@@ -152,7 +149,7 @@ ctgov_query() %>%
 
 ## Visualizing the output
 
-The package (will) also contain a number of tools for visualizing the output.
+The package also contains a number of tools for visualizing the output.
 Here is one example:
 
 ```{r}
@@ -161,5 +158,6 @@ ctgov_query(
   enrollment_range = c(100, 200),
   date_range = c("2019-01-01", "2020-02-01")
 ) %>%
-  ctgov_plot_timeline(df)
+  ctgov_plot_timeline(df) +
+    ggplot2::theme_minimal()
 ```

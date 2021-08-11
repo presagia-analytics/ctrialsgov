@@ -8,21 +8,21 @@ ctgov_gantt_labeller <- function(x) {
 
   link <- paste0("https://clinicaltrials.gov/ct2/show/NCT", x$nct_id)
   hrefs <- sprintf("NCTID: <a href=\"%s\">%s</a>", link, x$nct_id)
-  conditions <- 
+  conditions <-
     map_chr(
-      x$conditions, 
-      ~ .x %>% 
+      x$conditions,
+      ~ .x %>%
         stri_split(fixed = "|") %>%
         unlist() %>%
         paste(collapse = "\n\t\t")
     )
 
-  interventions <- 
+  interventions <-
     map_chr(
-      x$interventions, 
+      x$interventions,
       ~ paste(.x$name, collapse = "\n\t\t")
     )
-    
+
   paste0(
     "</br>", "NCT ID: ", x$nct_id, "</br>",
 #    "Status: ", x$status, "</br>",
@@ -45,7 +45,7 @@ ctgov_gantt_labeller <- function(x) {
 #' @param label_column the column denoting the labels for the y-axis.
 #' (Default is "nct_id")
 #' @param color the column to be used for coloring. (Default is label_column)
-#' @param tooltip the tooltips for each of trials. 
+#' @param tooltip the tooltips for each of trials.
 #' (Default is `ctgov_gantt_labeller(x)`).
 #'
 #' @importFrom ggplot2 ggplot aes geom_tile enexpr xlab ylab guides
@@ -72,6 +72,8 @@ ctgov_plot_timeline <- function(
     ylab(label_column) +
     xlab("Date") +
     guides(fill = guide_legend(color))
+
+  return(p)
 }
 
 

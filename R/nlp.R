@@ -1,14 +1,22 @@
 #' Keywords in Context
 #'
-#' Take a
+#' Takes a keyword and vector of text and returns instances where the keyword
+#' is found within the text.
 #'
 #' @param term          search term as a string
 #' @param text          vector of text to search
+#' @param names         optional vector of names corresponding to the text
 #' @param n             number of results to return; default is Inf
 #' @param ignore_case   should search ignore case? default is TRUE
+#' @param use_color     printed results include ASCII color escape sequences;
+#'                      these are set to \code{FALSE} because they only work
+#'                      correctly when returned in the terminal
 #' @param width         how many characters to show as context
+#' @param output        what kind of output to provide; default prints the
+#'                      results using \code{cat}
 #'
-#' @return  a character vector of the search results
+#' @return  either nothing, character vector, or data frame depending on the
+#'          the requested return type
 #'
 #' @export
 ctgov_kwic <- function(
@@ -71,20 +79,94 @@ ctgov_kwic <- function(
   } else if (output == "character") {
     return(paste0(df$left, df$term, df$right))
   } else {
-    return(dplyr::select(df, left, term, right, start, end))
+    return(dplyr::select(
+      df, .data$left, .data$term, .data$right, .data$start, .data$end
+    ))
   }
 }
 
+#' TF-IDF Keywords
+#'
+#' Takes one or more vectors of text and returns a vector of keywords.
+#'
+#' @param ...           one or more vectors of text to search; must all be the
+#'                      same length
+#' @param max_terms     maximum number of terms to consider for keywords
+#' @param tolower       should keywords respect the case of the raw terms
+#' @param nterms        number of keyord terms to include
+#' @param min_df        minimum proportion of documents that a term should
+#'                      be present in to be included in the keywords
+#' @param max_df        maximum proportion of documents that a term should
+#'                      be present in to be included in the keywords
+#' @param nterms        number of keyord terms to include
+#'
+#' @return  a character vector of detected keywords
+#'
 #' @export
-ctgov_tfidf <- function(..., max_terms = 10000, tolower = TRUE, nterms = 5L)
+ctgov_tfidf <- function(
+  ..., max_terms = 10000, tolower = TRUE, nterms = 5L, min_df = 0, max_df = 1
+)
 {
   tokens <- get_tokens(...)
-  cnts <- make_token_counts(tokens, max_terms = max_terms, tolower = tolower)
+  cnts <- make_token_counts(
+    tokens,
+    max_terms = max_terms,
+    tolower = tolower,
+    min_df = min_df,
+    max_df = max_df
+  )
   tfidf <- create_tfidf_mat(cnts)
   terms <- create_tfidf_terms(tfidf, nterms = nterms)
 
   return(terms)
 }
+
+#' Similarity Matrix
+#'
+#' Takes one or more vectors of text and returns a similarity matrix.
+#'
+#' @param ...           one or more vectors of text to search; must all be the
+#'                      same length
+#' @param max_terms     maximum number of terms to consider for keywords
+#' @param tolower       should keywords respect the case of the raw terms
+#' @param min_df        minimum proportion of documents that a term should
+#'                      be present in to be included in the keywords
+#' @param max_df        maximum proportion of documents that a term should
+#'                      be present in to be included in the keywords
+#'
+#' @return  a distance matrix
+#'
+#' @export
+ctgov_text_similarity <- function(
+  ..., max_terms = 10000, tolower = TRUE, min_df = 0, max_df = 1
+)
+{
+  # get the TF-IDF matrix
+  tokens <- get_tokens(...)
+  if (length(tokens) > 1000)
+  {
+    warning("It is not recommend to create similarity scores for more than",
+            "1000 records. This may take a while.")
+  }
+  cnts <- make_token_counts(
+    tokens,
+    max_terms = max_terms,
+    tolower = tolower,
+    min_df = min_df,
+    max_df = max_df
+  )
+  tfidf <- create_tfidf_mat(cnts)
+
+  # create the similarity scores
+  x <- as.matrix(tfidf)
+  sim <- x / sqrt(rowSums(x * x))
+  sim <- sim %*% t(sim)
+  sim
+}
+
+
+###############################################################################
+# helper functions below; not exported
 
 get_tokens <- function(...)
 {
@@ -103,16 +185,31 @@ get_tokens <- function(...)
   tokens
 }
 
-make_token_counts <- function(tokens, max_terms = 10000, tolower = TRUE)
+make_token_counts <- function(
+  tokens, max_terms = 10000, tolower = TRUE, min_df = 0, max_df = 1
+)
 {
-  terms <- stringi::stri_trim(unlist(tokens))
-  if (tolower) { terms <- stringi::stri_trans_tolower(terms) }
-  terms <- stringi::stri_replace_all(terms, "", regex = "\\W")
+  # clean the tokens
+  tokens_c <- lapply(tokens, stringi::stri_trim)
+  if (tolower) { tokens_c <- lapply(tokens_c, stringi::stri_trans_tolower)}
+  tokens_c <- lapply(tokens_c, stringi::stri_replace_all, "", regex = "\\W")
+
+  terms <- unlist(tokens_c)
   docs <- rep(seq_along(tokens), sapply(tokens, length))
 
-  vocabulary <- names(sort(table(terms), decreasing = TRUE))
-  if (length(vocabulary) > max_terms) { vocabulary <- vocabulary[seq(1, max_terms)] }
+  # determine the vocabulary set:
+  N <- length(tokens_c)
+  possible_vocab <- unlist(lapply(tokens_c, unique))
+  possible_vocab <- table(possible_vocab) / N
+  possible_vocab <- possible_vocab[possible_vocab >= min_df &
+      possible_vocab <= max_df]
+  possible_vocab <- sort(possible_vocab, decreasing = TRUE)
+  vocabulary <- names(possible_vocab[seq(1, min(max_terms,
+      length(possible_vocab)))])
 
+  assert(length(vocabulary) >= 1, "vocabulary length is too small to continue")
+
+  # match vocabulary to
   index <- match(terms, vocabulary)
   terms <- terms[!is.na(index)]
   docs <- docs[!is.na(index)]
@@ -141,6 +238,7 @@ create_tfidf_mat <- function(cnts)
   tfidf
 }
 
+#' @importFrom rlang .data
 create_tfidf_terms <- function(tfidf, nterms = 5L)
 {
   df <- tibble::tibble(
@@ -148,23 +246,9 @@ create_tfidf_terms <- function(tfidf, nterms = 5L)
     term = colnames(tfidf)[tfidf@j + 1L],
     count = tfidf@x
   )
-  df <- dplyr::arrange(group_by(df, doc), desc(count))
+  df <- dplyr::arrange(
+    dplyr::group_by(df, .data$doc), dplyr::desc(.data$count)
+  )
   df <- dplyr::slice_head(df, n = nterms)
-  dplyr::summarize(df, terms = paste0(term, collapse = "|"))
-}
-
-#' @export
-ctgov_pca_order <- function(term_counts)
-{
-  tf <- term_counts
-  tf@x <- 1 + log2(tf@x)
-  tf@x[tf@x < 0] <- 0
-  idf <- log2(nrow(tf) / apply(tf > 0, 2, sum))
-
-  tfidf <- Matrix::t(Matrix::t(tf) * idf)
-  tfidf <- methods::as(tfidf, "dgTMatrix")
-
-  x <- as.matrix(tfidf)
-  pca <- as.numeric(irlba::prcomp_irlba(t(x), n = 1, scale. = TRUE)$rotation)
-  pca
+  dplyr::summarize(df, terms = paste0(.data$term, collapse = "|"))
 }

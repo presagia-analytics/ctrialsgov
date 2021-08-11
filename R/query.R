@@ -73,55 +73,43 @@
 #'                                in the output. Set to \code{NULL} to avoid
 #'                                searching this field.
 #'
-#' @param allocation              character vector of study types to include
+#' @param allocation              character vector of allocations to include
 #'                                in the output. Set to \code{NULL} to avoid
 #'                                searching this field.
 #'
-#' @param intervention_model      character vector of study types to include
+#' @param intervention_model      character vector of interventions to include
 #'                                in the output. Set to \code{NULL} to avoid
 #'                                searching this field.
 #'
-#' @param observational_model     character vector of study types to include
+#' @param observational_model     character vector of observations to include
 #'                                in the output. Set to \code{NULL} to avoid
 #'                                searching this field.
 #'
-#' @param primary_purpose         character vector of study types to include
+#' @param primary_purpose         character vector of primary purposes to
+#'                                include in the output. Set to \code{NULL} to
+#'                                avoid searching this field.
+#'
+#' @param time_perspective        character vector of time perspectives to
+#'                                include in the output. Set to \code{NULL} to
+#'                                avoid searching this field.
+#'
+#' @param masking_description     character vector of maskings to include
 #'                                in the output. Set to \code{NULL} to avoid
 #'                                searching this field.
 #'
-#' @param time_perspective        character vector of study types to include
+#' @param sampling_method         character vector of sampling methods to
+#'                                include in the output. Set to \code{NULL} to
+#'                                avoid searching this field.
+#'
+#' @param phase                   character vector of phases to include
 #'                                in the output. Set to \code{NULL} to avoid
 #'                                searching this field.
 #'
-#' @param masking_description     character vector of study types to include
+#' @param gender                  character vector of genders to include
 #'                                in the output. Set to \code{NULL} to avoid
 #'                                searching this field.
 #'
-#' @param sampling_method         character vector of study types to include
-#'                                in the output. Set to \code{NULL} to avoid
-#'                                searching this field.
-#'
-#' @param phase                   character vector of study types to include
-#'                                in the output. Set to \code{NULL} to avoid
-#'                                searching this field.
-#'
-#' @param gender                  character vector of study types to include
-#'                                in the output. Set to \code{NULL} to avoid
-#'                                searching this field.
-#'
-#' @param sponsor_type            character vector of study types to include
-#'                                in the output. Set to \code{NULL} to avoid
-#'                                searching this field.
-#'
-#' @param study_type              character vector of study types to include
-#'                                in the output. Set to \code{NULL} to avoid
-#'                                searching this field.
-#'
-#' @param study_type              character vector of study types to include
-#'                                in the output. Set to \code{NULL} to avoid
-#'                                searching this field.
-#'
-#' @param study_type              character vector of study types to include
+#' @param sponsor_type            character vector of sponsor types to include
 #'                                in the output. Set to \code{NULL} to avoid
 #'                                searching this field.
 #'
