@@ -48,8 +48,9 @@ ctgov_gantt_labeller <- function(x) {
 #' @param tooltip the tooltips for each of trials.
 #' (Default is `ctgov_gantt_labeller(x)`).
 #'
-#' @importFrom ggplot2 ggplot aes geom_tile enexpr xlab ylab guides
+#' @importFrom ggplot2 ggplot aes_string geom_tile enexpr xlab ylab guides
 #' guide_legend
+#' @importFrom lubridate days
 #' @seealso ctgov_gantt_labeller
 #' @export
 ctgov_plot_timeline <- function(
@@ -59,21 +60,23 @@ ctgov_plot_timeline <- function(
   label_column = "nct_id",
   color = label_column,
   tooltip = ctgov_gantt_labeller(x)) {
-
-  p <- ggplot(data = x,
-    aes(
-      x = enexpr(start_date),
-      y = eval(as.name(label_column)),
-      width = as.integer(eval(as.name(completion_date)) - enexpr(start_date)),
-      fill = eval(as.name(color)),
-      text = tooltip
-    )) +
-    geom_tile(height = 0.8) +
-    ylab(label_column) +
-    xlab("Date") +
-    guides(fill = guide_legend(color))
-
-  return(p)
+  x$width <- as.integer(x[[completion_date]]) - as.integer(x[[start_date]])
+  x$tooltip <- tooltip
+  x[[start_date]] <- x[[start_date]] + days(round(x$width / 2))
+  ggplot(
+    data = x, 
+    aes_string(
+      x = start_date,
+      y = label_column,
+      fill = color,
+      width = "width",
+      text = "tooltip"
+    )
+  ) +
+  geom_tile(height = 0.8) +
+  ylab(label_column) +
+  xlab("Date") +
+  guides(fill = guide_legend(color))
 }
 
 
