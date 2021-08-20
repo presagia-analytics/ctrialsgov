@@ -1,7 +1,9 @@
+^.covrignore$
 ^doc$
 ^Meta$
 ^README\.Rmd$
 ^codecov\.yml$
+^.covrignore
 ^docs$
 ^\.github$
 ^data-raw$

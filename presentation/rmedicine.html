@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>{ctrialsgov}: Access, Visualization, and Discovery of the ClinicalTrials.gov Database</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Taylor Arnold" />
+    <meta name="date" content="2021-08-20" />
+    <script src="rmedicine_files/header-attrs-2.10/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# {ctrialsgov}: Access, Visualization, and Discovery of the ClinicalTrials.gov Database
+### Taylor Arnold
+### 2021-08-20
+
+---
+
+class: center, inverse, middle, title-slide
+
+# 1. Introduction
+
+---
+
+
+
+# Authors and Installation
+
+The package is a collaboration between:
+
+- Taylor Arnold, University of Richmond
+- Michael Kane, Yale University
+- Auston Wei, Cleveland Clinic
+
+It can be installed using devtools:
+
+
+```r
+devtools::install_github("presagia-analytics/ctrialsgov")
+```
+
+And should be on CRAN by the end of the month.
+
+---
+
+# ClinicalTrials.gov
+
+The ClinicalTrials.gov website provides a database of clinical studies from
+around the world. It is maintained by the U.S. National Library of Medicine and
+the NIH.
+
+The site does a great job of documenting and making available to entire database
+to download and use locally. However, there are two challenges to using the
+database directly for many applications:
+
+1. The data are normalized across dozens of tables.
+2. Much of the most important information is only available in free text fields.
+
+---
+
+# Schema
+
+&lt;img src="imgs/schema_diagram.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Example Trial (web interface)
+
+&lt;img src="imgs/trial_example.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Goals
+
+The goals of the package are to provide an easy interface for querying the
+ClinicalTrials.gov database and returning a single, combined data frame for
+analysis. We also provide some helper functions for visualizing and exploring
+the results, particularly the free text fields.
+
+---
+class: center, inverse, middle, title-slide
+
+# 2. Usage
+
+---
+
+## Create the Data I: Package Sample
+
+Before querying the ClinicalTrials.gov data, we need to load a pre-processed
+version of the data into R. There are three ways to do this. The easiest is
+to load a small sample dataset (2% of the total) that is included with the
+package itself using the following:
+
+
+```r
+library(ctrialsgov)
+ctgov_load_sample()
+```
+
+This is the version of the data that is used in most of the tests, examples,
+and in this presentation.
+
+---
+
+## Create the Data II: Static Version
+
+Alternatively, we can download a static version of the data from GitHub and
+load this into R without needing the setup a local version of the database.
+This will be cached locally so that it can be re-loaded without downloading
+each time. To download and load this data, use the following:
+
+
+```r
+ctgov_load_cache()
+```
+
+The static dataset is updated monthly.
+
+---
+
+## Create the Data III: Create
+
+Finally, if you have installed a copy of the database locally into PostGRES,
+the data can be created from scratch with the following block of code (it will
+take a couple of minutes to finish):
+
+
+```r
+library(DBI)
+library(RPostgreSQL)
+
+drv &lt;- dbDriver('PostgreSQL')
+con &lt;- DBI::dbConnect(drv, dbname="aact")
+ctgov_create_data(con)
+```
+
+This is the method we used to create the other two datasets.
+
+---
+
+## Querying the Data
+
+The primary function for querying the dataset is called `ctgov_query`. It can
+be called after using any of the functions in the previous section. Here
+are a few examples of how the function works. We will see a few examples here;
+see the help pages for a complete list of options.
+
+There are a number of fields in the data that use exact matches of categories.
+Here, for example, we find the interventional studies:
+
+
+```r
+ctgov_query(study_type = "Interventional")
+```
+
+```
+## # A tibble: 2,899 × 28
+##    nct_id      start_date phase           enrollment brief_title  official_title
+##    &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;                &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;         
+##  1 NCT04670484 2021-12-01 N/A                     30 Mask Hypoxi… To Determine …
+##  2 NCT04784052 2021-10-31 Phase 1/Phase 2         12 Depleted Do… TCR+ T-cell/C…
+##  3 NCT04851119 2021-10-29 Phase 1/Phase 2         38 Tegavivint … A Phase 1/2 S…
+##  4 NCT04538482 2021-09-30 N/A                    112 DASH INterv… Determining t…
+##  5 NCT04430452 2021-09-30 Phase 2                 30 Hypofractio… Phase II Tria…
+##  6 NCT04826393 2021-09-30 Phase 1                 65 ASP8374 + C… Phase Ib Tria…
+##  7 NCT04271683 2021-09-01 N/A                     70 Safe Use of… Safe Use of C…
+##  8 NCT03029637 2021-08-31 N/A                     90 No-preparat… No-preparatio…
+##  9 NCT04307433 2021-08-31 N/A                    120 Storytellin… mHealth Deliv…
+## 10 NCT04453709 2021-08-31 N/A                    232 Family-cent… Reducing Stre…
+## # … with 2,889 more rows, and 22 more variables:
+## #   primary_completion_date &lt;date&gt;, study_type &lt;chr&gt;, description &lt;chr&gt;,
+## #   eudract_num &lt;chr&gt;, other_id &lt;chr&gt;, allocation &lt;chr&gt;,
+## #   intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;, primary_purpose &lt;chr&gt;,
+## #   time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;, …
+```
+
+---
+
+## Querying the Data, cont.
+
+Or, all of the interventional studies that have a primary industry sponsor:
+
+
+```r
+ctgov_query(study_type = "Interventional", sponsor_type = "Industry")
+```
+
+```
+## # A tibble: 783 × 28
+##    nct_id      start_date phase           enrollment brief_title  official_title
+##    &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;                &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;         
+##  1 NCT04683120 2021-07-15 N/A                    100 Real-time D… Real-time Dia…
+##  2 NCT04875754 2021-06-30 Phase 1/Phase 2         24 A Study Eva… A Phase 1/2a,…
+##  3 NCT04821310 2021-06-04 Phase 2                110 Protonix Tr… An Explorator…
+##  4 NCT04839042 2021-06-01 Phase 1                 40 A Phase 1, … A Phase 1, Fi…
+##  5 NCT04707768 2021-05-31 Phase 3                450 Study Evalu… A Randomized,…
+##  6 NCT04855136 2021-05-04 Phase 1/Phase 2        415 Safety and … An Explorator…
+##  7 NCT04732286 2021-04-30 Phase 3                100 A Study of … A Phase IIIb,…
+##  8 NCT04793620 2021-04-30 Phase 1                 60 Pertussis A… A Phase 1, Ra…
+##  9 NCT04803253 2021-04-30 N/A                     14 Study of th… Evaluating th…
+## 10 NCT04786873 2021-04-30 Phase 3                100 A Research … Multicenter, …
+## # … with 773 more rows, and 22 more variables: primary_completion_date &lt;date&gt;,
+## #   study_type &lt;chr&gt;, description &lt;chr&gt;, eudract_num &lt;chr&gt;, other_id &lt;chr&gt;,
+## #   allocation &lt;chr&gt;, intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;,
+## #   primary_purpose &lt;chr&gt;, time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;,
+## #   sponsor &lt;chr&gt;, sponsor_type &lt;chr&gt;, conditions &lt;chr&gt;, interventions &lt;list&gt;
+```
+
+---
+
+## Querying the Data: Continuous values
+
+A few fields have continuous values that can be searched by giving a vector
+with two values. The results return any values that fall between the lower
+bound (first value) and the upper bound (second value). Here, we find the
+studies that have between 40 and 42 patients enrolled in them:
+
+
+```r
+ctgov_query(enrollment_range = c(40, 42))
+```
+
+```
+## # A tibble: 115 × 28
+##    nct_id      start_date phase   enrollment brief_title      official_title    
+##    &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;            &lt;chr&gt;             
+##  1 NCT04839042 2021-06-01 Phase 1         40 A Phase 1, Firs… A Phase 1, First-…
+##  2 NCT04843852 2021-05-31 Phase 2         40 TLR-9 Adjuvante… Augmentation of H…
+##  3 NCT04392180 2021-05-31 &lt;NA&gt;            42 COA-APTIC Careg… COA-APTIC Caregiv…
+##  4 NCT04800991 2021-03-17 N/A             40 NuGa (Nutrition… A Pilot Study to …
+##  5 NCT04646577 2020-12-01 N/A             40 The Effect of t… The Effect of Tra…
+##  6 NCT03301805 2020-12-01 Phase 2         40 A Phase II, Eva… A Phase II, Open …
+##  7 NCT04592224 2020-11-12 &lt;NA&gt;            40 Cancer Informat… Cancer Informatio…
+##  8 NCT04473430 2020-11-05 N/A             40 Use of Continuo… Use of Continuous…
+##  9 NCT04568369 2020-10-31 N/A             40 Treatment of Po… Functional Near I…
+## 10 NCT04349644 2020-10-21 N/A             40 Enhancing Socia… Enhancing Social …
+## # … with 105 more rows, and 22 more variables: primary_completion_date &lt;date&gt;,
+## #   study_type &lt;chr&gt;, description &lt;chr&gt;, eudract_num &lt;chr&gt;, other_id &lt;chr&gt;,
+## #   allocation &lt;chr&gt;, intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;,
+## #   primary_purpose &lt;chr&gt;, time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;,
+## #   sponsor &lt;chr&gt;, sponsor_type &lt;chr&gt;, conditions &lt;chr&gt;, interventions &lt;list&gt;
+```
+
+---
+
+## Querying the Data: Continuous values, cont.
+
+Setting one end of the range to missing avoids searching for that end of the
+range. For example, the following finds any studies with 1000 or more patients.
+
+
+```r
+ctgov_query(enrollment_range = c(1000, NA))
+```
+
+```
+## # A tibble: 237 × 28
+##    nct_id      start_date phase   enrollment brief_title      official_title    
+##    &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;            &lt;chr&gt;             
+##  1 NCT04381195 2021-06-30 &lt;NA&gt;          1300 Adult Functioni… Developing a Gold…
+##  2 NCT03928639 2021-05-17 &lt;NA&gt;          9999 Structural Hear… NHLBI Structural …
+##  3 NCT04884048 2021-05-01 &lt;NA&gt;          2000 Multicentric Bo… Multicentric Stud…
+##  4 NCT04104555 2021-05-01 N/A           1055 Orthotics for T… Orthotics for Tre…
+##  5 NCT04727437 2021-04-30 Phase 3       1466 STOPping Antico… STOPping Anticoag…
+##  6 NCT04658888 2021-04-26 N/A           1211 St. Joe's Invit… Increasing Cancer…
+##  7 NCT04703790 2021-04-07 &lt;NA&gt;          1200 Acceptability o… Acceptability Acr…
+##  8 NCT04775992 2021-03-01 &lt;NA&gt;          1000 Preemptive Anal… Preemptive Analge…
+##  9 NCT04762862 2021-02-01 &lt;NA&gt;          1200 QUANTACT : Impa… QUANTACT : Impact…
+## 10 NCT04682730 2021-01-12 N/A           1200 An Implementati… An Implementation…
+## # … with 227 more rows, and 22 more variables: primary_completion_date &lt;date&gt;,
+## #   study_type &lt;chr&gt;, description &lt;chr&gt;, eudract_num &lt;chr&gt;, other_id &lt;chr&gt;,
+## #   allocation &lt;chr&gt;, intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;,
+## #   primary_purpose &lt;chr&gt;, time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;,
+## #   sponsor &lt;chr&gt;, sponsor_type &lt;chr&gt;, conditions &lt;chr&gt;, interventions &lt;list&gt;
+```
+
+---
+
+## Querying the Data: Dates
+
+Similarly, we can give a range of dates. These are given in the form of strings
+as "YYYY-MM-DD":
+
+
+```r
+ctgov_query(date_range = c("2020-01-01", "2020-02-01"))
+```
+
+```
+## # A tibble: 25 × 28
+##    nct_id      start_date phase           enrollment brief_title  official_title
+##    &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;                &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;         
+##  1 NCT04162236 2020-02-01 &lt;NA&gt;                   440 Cardiac Dys… Cardiac Dysfu…
+##  2 NCT04036539 2020-02-01 N/A                     34 Photobiomod… Evaluation of…
+##  3 NCT04617158 2020-02-01 N/A                     40 Comparing A… Comparison Be…
+##  4 NCT03999164 2020-02-01 Phase 1                 30 Imaging of … Imaging of Gl…
+##  5 NCT04203927 2020-02-01 Early Phase 1           50 Effects of … Effects of Em…
+##  6 NCT03880149 2020-02-01 N/A                    140 The Effects… The Effects o…
+##  7 NCT04263623 2020-01-31 Phase 2                 75 Clinical St… A Double-Blin…
+##  8 NCT04199520 2020-01-31 Phase 2                155 Compare the… Compare the E…
+##  9 NCT04219735 2020-01-30 Phase 2                200 Effect of M… Effect of Min…
+## 10 NCT04774809 2020-01-29 Phase 2/Phase 3        300 Assess the … A Randomized,…
+## # … with 15 more rows, and 22 more variables: primary_completion_date &lt;date&gt;,
+## #   study_type &lt;chr&gt;, description &lt;chr&gt;, eudract_num &lt;chr&gt;, other_id &lt;chr&gt;,
+## #   allocation &lt;chr&gt;, intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;,
+## #   primary_purpose &lt;chr&gt;, time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;,
+## #   sponsor &lt;chr&gt;, sponsor_type &lt;chr&gt;, conditions &lt;chr&gt;, interventions &lt;list&gt;
+```
+
+---
+
+## Querying the Data: Keywords
+
+Finally, we can also search free text fields using keywords. The following for
+example finds and study that includes the phrase "lung cancer" (ignoring
+case) in the description field:
+
+
+```r
+ctgov_query(description_kw = "lung cancer")
+```
+
+```
+## # A tibble: 54 × 28
+##    nct_id      start_date phase         enrollment brief_title   official_title 
+##    &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;              &lt;int&gt; &lt;chr&gt;         &lt;chr&gt;          
+##  1 NCT04696939 2021-01-31 Phase 2              100 Combined Ate… Clinical Study…
+##  2 NCT03421678 2020-10-31 &lt;NA&gt;                   0 Ethnic/Racia… Ethnic/Racial …
+##  3 NCT04452214 2020-09-24 Phase 1               15 A Study of t… An Open-label,…
+##  4 NCT04186988 2019-11-05 Early Phase 1         20 [18F]-AraG f… Imaging of T-C…
+##  5 NCT03979170 2019-04-01 &lt;NA&gt;                  50 Patient-deri… Patient-derive…
+##  6 NCT03720873 2018-10-31 Phase 2               90 EGFR-TKIs Co… An Multicenter…
+##  7 NCT03611738 2018-10-31 Phase 1               48 Ceritinib Pl… Phase I Study …
+##  8 NCT03366675 2017-12-01 Phase 2               15 AZD 2811 Mon… Phase II, Sing…
+##  9 NCT04454853 2017-12-01 &lt;NA&gt;                  40 Methylated D… A Research of …
+## 10 NCT03261947 2017-10-25 Phase 2              101 A Study to E… An Open-Label,…
+## # … with 44 more rows, and 22 more variables: primary_completion_date &lt;date&gt;,
+## #   study_type &lt;chr&gt;, description &lt;chr&gt;, eudract_num &lt;chr&gt;, other_id &lt;chr&gt;,
+## #   allocation &lt;chr&gt;, intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;,
+## #   primary_purpose &lt;chr&gt;, time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;,
+## #   sponsor &lt;chr&gt;, sponsor_type &lt;chr&gt;, conditions &lt;chr&gt;, interventions &lt;list&gt;
+```
+
+---
+
+## Querying the Data: Multiple terms
+
+We can search two terms at once as well, by default it finds things that match
+at least one of the terms:
+
+
+```r
+ctgov_query(description_kw = c("lung cancer", "colon cancer"))
+```
+
+```
+## # A tibble: 61 × 28
+##    nct_id      start_date phase         enrollment brief_title   official_title 
+##    &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;              &lt;int&gt; &lt;chr&gt;         &lt;chr&gt;          
+##  1 NCT04696939 2021-01-31 Phase 2              100 Combined Ate… Clinical Study…
+##  2 NCT03421678 2020-10-31 &lt;NA&gt;                   0 Ethnic/Racia… Ethnic/Racial …
+##  3 NCT04452214 2020-09-24 Phase 1               15 A Study of t… An Open-label,…
+##  4 NCT04186988 2019-11-05 Early Phase 1         20 [18F]-AraG f… Imaging of T-C…
+##  5 NCT03979170 2019-04-01 &lt;NA&gt;                  50 Patient-deri… Patient-derive…
+##  6 NCT03720873 2018-10-31 Phase 2               90 EGFR-TKIs Co… An Multicenter…
+##  7 NCT03611738 2018-10-31 Phase 1               48 Ceritinib Pl… Phase I Study …
+##  8 NCT03366675 2017-12-01 Phase 2               15 AZD 2811 Mon… Phase II, Sing…
+##  9 NCT04454853 2017-12-01 &lt;NA&gt;                  40 Methylated D… A Research of …
+## 10 NCT03261947 2017-10-25 Phase 2              101 A Study to E… An Open-Label,…
+## # … with 51 more rows, and 22 more variables: primary_completion_date &lt;date&gt;,
+## #   study_type &lt;chr&gt;, description &lt;chr&gt;, eudract_num &lt;chr&gt;, other_id &lt;chr&gt;,
+## #   allocation &lt;chr&gt;, intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;,
+## #   primary_purpose &lt;chr&gt;, time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;,
+## #   sponsor &lt;chr&gt;, sponsor_type &lt;chr&gt;, conditions &lt;chr&gt;, interventions &lt;list&gt;
+```
+
+---
+
+## Querying the Data: Match all
+
+But the `match_all` flag can be set to search for both terms at the same time
+(here, that returns no matches):
+
+
+```r
+ctgov_query(description_kw = c("lung cancer", "colon cancer"), match_all = TRUE)
+```
+
+```
+## # A tibble: 0 × 28
+## # … with 28 variables: nct_id &lt;chr&gt;, start_date &lt;date&gt;, phase &lt;chr&gt;,
+## #   enrollment &lt;int&gt;, brief_title &lt;chr&gt;, official_title &lt;chr&gt;,
+## #   primary_completion_date &lt;date&gt;, study_type &lt;chr&gt;, description &lt;chr&gt;,
+## #   eudract_num &lt;chr&gt;, other_id &lt;chr&gt;, allocation &lt;chr&gt;,
+## #   intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;, primary_purpose &lt;chr&gt;,
+## #   time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, …
+```
+
+---
+
+## Querying the Data: Other text fiels
+
+Other keyword fields include `official_title_kw`, `source_kw` and `criteria_kw`.
+
+Any of the options can be combined as needed.
+
+
+```r
+ctgov_query(
+  description_kw = "cancer",
+  enrollment_range = c(100, 200),
+  date_range = c("2019-01-01", "2020-02-01")
+)
+```
+
+```
+## # A tibble: 4 × 28
+##   nct_id      start_date phase   enrollment brief_title official_title primary_complet…
+##   &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;          &lt;date&gt;          
+## 1 NCT04199520 2020-01-31 Phase 2        155 Compare th… Compare the E… 2021-01-31      
+## 2 NCT03728829 2019-12-30 &lt;NA&gt;           100 Targeted N… An Observatio… 2022-09-30      
+## 3 NCT04498689 2019-08-01 Phase 2        117 Efficacy a… A Phase II, S… 2022-12-31      
+## 4 NCT02749552 2019-01-22 N/A            200 The Role o… The Role of V… 2019-08-31      
+## # … with 21 more variables: study_type &lt;chr&gt;, description &lt;chr&gt;,
+## #   eudract_num &lt;chr&gt;, other_id &lt;chr&gt;, allocation &lt;chr&gt;,
+## #   intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;, primary_purpose &lt;chr&gt;,
+## #   time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;,
+## #   sponsor &lt;chr&gt;, sponsor_type &lt;chr&gt;, conditions &lt;chr&gt;, interventions &lt;list&gt;
+```
+
+---
+
+## Querying the Data: Pipes
+
+Finally, we can also pass a current version of the data set to the query
+function, rather than starting with the full data set. This is useful when
+you want to combine queries in a more complex way. For example, this is
+equivalent to the above:
+
+
+```r
+library(dplyr)
+
+ctgov_query() %&gt;%
+  ctgov_query(description_kw = "cancer") %&gt;%
+  ctgov_query(enrollment_range = c(100, 200)) %&gt;%
+  ctgov_query(date_range = c("2019-01-01", "2020-02-01"))
+```
+
+```
+## # A tibble: 4 × 28
+##   nct_id      start_date phase   enrollment brief_title official_title primary_complet…
+##   &lt;chr&gt;       &lt;date&gt;     &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;          &lt;date&gt;          
+## 1 NCT04199520 2020-01-31 Phase 2        155 Compare th… Compare the E… 2021-01-31      
+## 2 NCT03728829 2019-12-30 &lt;NA&gt;           100 Targeted N… An Observatio… 2022-09-30      
+## 3 NCT04498689 2019-08-01 Phase 2        117 Efficacy a… A Phase II, S… 2022-12-31      
+## 4 NCT02749552 2019-01-22 N/A            200 The Role o… The Role of V… 2019-08-31      
+## # … with 21 more variables: study_type &lt;chr&gt;, description &lt;chr&gt;,
+## #   eudract_num &lt;chr&gt;, other_id &lt;chr&gt;, allocation &lt;chr&gt;,
+## #   intervention_model &lt;chr&gt;, observational_model &lt;chr&gt;, primary_purpose &lt;chr&gt;,
+## #   time_perspective &lt;chr&gt;, masking_description &lt;chr&gt;,
+## #   intervention_model_description &lt;chr&gt;, sampling_method &lt;chr&gt;, gender &lt;chr&gt;,
+## #   minimum_age &lt;dbl&gt;, maximum_age &lt;dbl&gt;, population &lt;chr&gt;, criteria &lt;chr&gt;,
+## #   sponsor &lt;chr&gt;, sponsor_type &lt;chr&gt;, conditions &lt;chr&gt;, interventions &lt;list&gt;
+```
+
+---
+class: center, inverse, middle, title-slide
+
+# 3. Text Analysis
+
+---
+
+## Keywords in Context
+
+The function `ctgov_kwic` highlights all of the occurances of a term within
+its context (the few words before and after the term occurs). For example, if
+we want to show the occurances of the term "bladder" in the titles of the
+interventional trials we can do this:
+
+
+```r
+z &lt;- ctgov_query(study_type = "Interventional")
+ctgov_kwic("bladder", z$brief_title)
+```
+
+```
+## ible Local Advanved |Bladder| Cancer
+## isplatin Ineligible |Bladder| Cancer Patients
+## n in the Overactive |Bladder|.
+## men With Overactive |Bladder|
+## on Catheter-Related |Bladder| Discomfort
+## Non Muscle Invasive |Bladder| Cancer
+## l Lung, Biliary and |Bladder| Cancer
+## Non-Muscle-Invasive |Bladder| Cancer (NMIBC) Rela
+## of Ezetimibe on Gall|bladder| Function
+## e (DMSO) in Painful |Bladder| Syndrome/Interstiti
+## tment of Overactive |Bladder| or Urge Urinary Inc
+## ectrical Control of |Bladder| in Spinal Cord Inju
+```
+
+---
+
+## Keywords in Context, cont.
+
+The function also has an option to include a title along with each occurance
+that is printed alongside each row. Here we will print the NCT id for each
+trial:
+
+
+```r
+z &lt;- ctgov_query(study_type = "Interventional")
+ctgov_kwic("bladder", z$brief_title, z$nct_id)
+```
+
+```
+## [NCT04553939] ible Local Advanved |Bladder| Cancer
+## [NCT04046094] isplatin Ineligible |Bladder| Cancer Patients
+## [NCT04483817] n in the Overactive |Bladder|.
+## [NCT04477265] men With Overactive |Bladder|
+## [NCT02228473] on Catheter-Related |Bladder| Discomfort
+## [NCT02214602] Non Muscle Invasive |Bladder| Cancer
+## [NCT02240238] l Lung, Biliary and |Bladder| Cancer
+## [NCT04498702] Non-Muscle-Invasive |Bladder| Cancer (NMIBC) Rela
+## [NCT00634140] of Ezetimibe on Gall|bladder| Function
+## [NCT00317070] e (DMSO) in Painful |Bladder| Syndrome/Interstiti
+## [NCT00174798] tment of Overactive |Bladder| or Urge Urinary Inc
+## [NCT00011570] ectrical Control of |Bladder| in Spinal Cord Inju
+```
+
+---
+
+## Keywords in Context, cont.
+
+There are some other options that can be used to change the way that the
+output is displayed. The default (shown above) prints the results out using
+the `cat` function. Other options return the results as a character vector of
+data frame, which are useful for further post-processing. There is also a
+flag `use_color` that prints the term in color rather than with pipes; it looks
+great in a terminal or RStudio but does not display correctly when knit to
+HTML.
+
+---
+
+## TF-IDF
+
+We can use a technique called term frequence-inverse document frequency (TF-IDF)
+to determine the most important words in a collection of of text fields. To
+implement this in R we will use the `ctgov_tfidf` function:
+
+
+```r
+z &lt;- ctrialsgov::ctgov_query()
+tfidf &lt;- ctgov_tfidf(z$description)
+print(tfidf, n = 15L)
+```
+
+```
+## # A tibble: 3,720 × 2
+##      doc terms                                                     
+##    &lt;int&gt; &lt;chr&gt;                                                     
+##  1     0 wound|colonization|bacteria|ped|observe                   
+##  2     1 mask|exertion|hypoxia|oxygenation|rest                    
+##  3     2 depleted|conditioning|donor|stem|infusion                 
+##  4     3 passed|tell|molecule|binding|cell                         
+##  5     4 dash|diet|gut|bile|crc                                    
+##  6     5 tremelimumab|durvalumab|radiation|hypofractionated|signals
+##  7     6 portion|89zr|combination|names|second                     
+##  8     7 apnoea|immediately|ventilation|manually|pressure          
+##  9     8 tooth|preparation|bridge|dental|prosthesis                
+## 10     9 cervical|malawian|narrative|screening|grounded            
+## 11    10 problem|behavioral|stress|plus|immigrant                  
+## 12    11 mindfulness|trainees|burnout|programs|online              
+## 13    12 t2d|liraglutide|obesity|adolescents|fda                   
+## 14    13 specimen|lumpectomy|specimens|diseased|words              
+## 15    14 biomechanical|rugby|match|sport|event                     
+## # … with 3,705 more rows
+```
+
+---
+
+## TF-IDF, cont.
+
+The default takes the lower case version of the terms, but (particularly with
+acronyms) it may be better to preserve the capitalization of the terms. Here is
+how we can do that in this example:
+
+
+```r
+tfidf &lt;- ctgov_tfidf(z$description, tolower = FALSE)
+print(tfidf, n = 15L)
+```
+
+```
+## # A tibble: 3,720 × 2
+##      doc terms                                             
+##    &lt;int&gt; &lt;chr&gt;                                             
+##  1     0 wound|colonization|bacteria|PED|observe           
+##  2     1 mask|exertion|hypoxia|oxygenation|rest            
+##  3     2 depleted|conditioning|donor|stem|infusion         
+##  4     3 passed|molecule|tell|cell|binding                 
+##  5     4 DASH|diet|gut|bile|CRC                            
+##  6     5 durvalumab|radiation|signals|immune|liver         
+##  7     6 portion|89Zr|Administered|combination|second      
+##  8     7 apnoea|immediately|ventilation|expiratory|manually
+##  9     8 tooth|preparation|bridge|dental|prosthesis        
+## 10     9 cervical|screening|Malawian|grounded|culturally   
+## 11    10 Problem|Plus|Management|behavioral|stress         
+## 12    11 mindfulness|burnout|programs|online|students      
+## 13    12 T2D|Liraglutide|obesity|adolescents|FDA           
+## 14    13 specimen|lumpectomy|specimens|diseased|words      
+## 15    14 biomechanical|rugby|match|sport|event             
+## # … with 3,705 more rows
+```
+
+---
+
+## TF-IDF, cont.
+
+We can also refine the results by including fewer rare terms. The argument
+`min_df` specifies the minimal proportion of documents that must contain a term
+for it to be returned as a keyword; the upper bound can also be specified
+with the argument `max_df`.
+
+
+```r
+tfidf &lt;- ctgov_tfidf(z$description, min_df = 0.02, max_df = 0.2)
+print(tfidf, n = 15L)
+```
+
+```
+## # A tibble: 3,716 × 2
+##      doc terms                                              
+##    &lt;int&gt; &lt;chr&gt;                                              
+##  1     0 effects|sample|pilot|feasibility|open              
+##  2     1 surgical|higher|use|there|evidence                 
+##  3     2 cell|regimen|method|immune|called                  
+##  4     3 cell|tumors|stop|safe|side                         
+##  5     4 receiving|investigators|participants|level|standard
+##  6     5 radiation|immune|cancer|therapy|work               
+##  7     6 combination|second||dose|recommended               
+##  8     7 pressure|method|general|positive|end               
+##  9     8 some|significant|reported|no|therefore             
+## 10     9 screening|intervention|based|cancer|prevention     
+## 11    10 plus|support|i|goal|intervention                   
+## 12    11 medical|increased|being|out|10                     
+## 13    12 incidence|us|body|day|insulin                      
+## 14    13 our|technique|analysis|results|evaluation          
+## 15    14 performance|cognitive|under|changes|aims           
+## # … with 3,701 more rows
+```
+
+---
+
+## Document Similarity
+
+Finally, the package also provides a function for producing similarity scores
+based on the text fields of the studies. Here, we will produce a similarity
+matrix based on the description field of Interventional, Industry-sponsored,
+Phase 2 trials.
+
+
+```r
+z &lt;- ctgov_query(
+  study_type = "Interventional", sponsor_type = "Industry", phase = "Phase 2"
+)
+scores &lt;- ctgov_text_similarity(z$description, min_df = 0, max_df = 0.1)
+dim(scores)
+```
+
+```
+## [1] 176 176
+```
+
+The returned value is a square matrix with one row and one colum for each
+clinical trial in the set. We can use these scores to find studies that are
+particularly close to one another in the words used within their descriptions.
+
+---
+
+## Document Similarity, cont.
+
+Here for example we can see five studies that use similar terms in their
+descriptions:
+
+
+```r
+index &lt;- order(scores[,100L], decreasing = TRUE)[seq_len(15L)]
+z$brief_title[index]
+```
+
+```
+##  [1] "Huperzine for Cognitive and Functional Impairment in Schizophrenia"                                                                                                              
+##  [2] "Schizophrenia Study In Adults"                                                                                                                                                   
+##  [3] "A Study to Assess Safety and Efficacy of KarXT in Adult Patients With Schizophrenia"                                                                                             
+##  [4] "A Study of GWP42003 as Adjunctive Therapy in the First Line Treatment of Schizophrenia or Related Psychotic Disorder"                                                            
+##  [5] "A Study to Test the Effectiveness and Safety of Fremanezumab on Patients With Fibromyalgia"                                                                                      
+##  [6] "Safety, Tolerability, And Immunogenicity Study Of ACC-001 In Japanese Subjects With Mild To Moderate Alzheimer's Disease"                                                        
+##  [7] "Efficacy and Safety of 26-Week Treatment of AR1001 in Patients With Mild to Moderate Alzheimer's Disease"                                                                        
+##  [8] "Study Assessing the Effect of 3-week Treatment With One of Three Oral Doses of Quinagolide"                                                                                      
+##  [9] "Pacemaker Holter Assessment of the Effect of BMS-914392 on Atrial Fibrillation Burden"                                                                                           
+## [10] "Safety And Feasibility Study Of Pressure-controlled Intermittent Coronary Sinus Occlusion (PICSO) In Patients With Coronary Artery Disease Undergoing Native Vessel Intervention"
+## [11] "Efficacy and Safety of Plasma Exchange With 5% Albumin in Beta-amyloid Peptide Clearance in Cerebral Spinal Fluid"                                                               
+## [12] "A Study to Examine the Efficacy of a Therapeutic THX-110 for Tourette Syndrome"                                                                                                  
+## [13] "Oral NRX 194204 Study in Patients With Advanced Non-Small Cell Lung Cancer (NSCLC)"                                                                                              
+## [14] "A Study to Evaluate the Safety and Efficacy of an Investigational Drug in HIV Infected Patients (0518-004)(COMPLETED)"                                                           
+## [15] "Solanezumab Safety Study in Japanese Patients With Alzheimer's Disease"
+```
+
+Further post-processing can be done with the similarity scores, such as spectral
+clustering and dimensionality reduction.
+
+---
+class: center, inverse, middle, title-slide
+
+# 4. Conclusions
+
+---
+
+The **ctrialsgov** package provides an easy-to-use interface for querying the
+ClinicalTrials.gov database and several helpful functions for post-processing
+the results. It can be downloaded here:
+
+
+```r
+devtools::install_github("presagia-analytics/ctrialsgov")
+```
+
+We welcome any comments or questions using GitHub issues or directly by
+email at **tarnold2@richmond.edu**.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create();
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
