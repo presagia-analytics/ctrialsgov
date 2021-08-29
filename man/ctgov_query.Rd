@@ -11,6 +11,7 @@ ctgov_query(
   brief_title_kw = NULL,
   official_title_kw = NULL,
   criteria_kw = NULL,
+  intervention_kw = NULL,
   intervention_desc_kw = NULL,
   conditions_kw = NULL,
   population_kw = NULL,
@@ -58,6 +59,9 @@ official title field. Set to
 \item{criteria_kw}{character vector of keywords to search in the
 criteria field. Set to
 \code{NULL} to avoid searching this field.}
+
+\item{intervention_kw}{character vector of keywords to search in the
+intervention names field.}
 
 \item{intervention_desc_kw}{character vector of keywords to search in the
 intervention description field. Set to

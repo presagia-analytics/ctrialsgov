@@ -33,6 +33,9 @@
 #'                                criteria field. Set to
 #'                                \code{NULL} to avoid searching this field.
 #'
+#' @param intervention_kw         character vector of keywords to search in the
+#'                                intervention names field.
+#'
 #' @param intervention_desc_kw    character vector of keywords to search in the
 #'                                intervention description field. Set to
 #'                                \code{NULL} to avoid searching this field.
@@ -122,6 +125,7 @@
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #'
+#' @importFrom purrr map_chr
 #' @export
 ctgov_query <- function(
   data = NULL,
@@ -130,6 +134,7 @@ ctgov_query <- function(
   brief_title_kw = NULL,
   official_title_kw = NULL,
   criteria_kw = NULL,
+  intervention_kw = NULL,
   intervention_desc_kw = NULL,
   conditions_kw = NULL,
   population_kw = NULL,
@@ -157,6 +162,7 @@ ctgov_query <- function(
   assert(is.null(sponsor_kw) | is.character(sponsor_kw))
   assert(is.null(brief_title_kw) | is.character(brief_title_kw))
   assert(is.null(official_title_kw) | is.character(official_title_kw))
+  assert(is.null(intervention_kw) | is.character(intervention_kw))
   assert(is.null(intervention_desc_kw) | is.character(intervention_desc_kw))
   assert(is.null(conditions_kw) | is.character(conditions_kw))
   assert(is.null(population_kw) | is.character(population_kw))
@@ -331,6 +337,14 @@ ctgov_query <- function(
   if (!is.null(criteria_kw))
   {
     ind <- search_kw(z$criteria, criteria_kw, ignore_case, match_all)
+    z <- z[ind,]
+  }
+  if (!is.null(intervention_kw))
+  {
+    inames <- purrr::map_chr(
+      z$interventions, function(v) paste0(v$name, collapse = " ")
+    )
+    ind <- search_kw(inames, intervention_kw, ignore_case, match_all)
     z <- z[ind,]
   }
   if (!is.null(intervention_desc_kw))
