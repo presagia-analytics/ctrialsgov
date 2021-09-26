@@ -22,7 +22,7 @@ remove_nonascii <- function(df)
 set.seed(1L)
 tbl_join_sample <- ctrialsgov:::.volatiles$tbl_join
 tbl_join_sample <- filter(tbl_join_sample, year(start_date) <= year(today()))
-tbl_join_sample <- slice_sample(tbl_join_sample, prop = 0.01)
+tbl_join_sample <- slice_sample(tbl_join_sample, prop = 0.008)
 tbl_join_sample <- arrange(tbl_join_sample, desc(start_date))
 tbl_join_sample <- remove_nonascii(tbl_join_sample)
 tbl_join_sample$interventions <- lapply(
@@ -53,20 +53,19 @@ use_data(cancer_studies, overwrite = TRUE)
 
 # Save larger files (in multiple parts to get around GH limits)
 z <- ctrialsgov:::.volatiles$tbl_join
+dir.create("data", FALSE)
 
-tbl_join_01 <- filter(z, year(start_date) > 2018L | is.na(year(start_date)))
-tbl_join_02 <- filter(z, year(start_date) > 2015L & year(start_date) <= 2018L)
-tbl_join_03 <- filter(z, year(start_date) > 2010L & year(start_date) <= 2015L)
-tbl_join_04 <- filter(z, year(start_date) <= 2010L)
+nparts <- 6L
+nrows <- nrow(z)
+bsize <- ceiling(nrows / nparts)
+ids <- rep(seq_len(nparts), each = bsize)
+ids <- ids[seq_len(nrows)]
 
-nr <- nrow(tbl_join_01) + nrow(tbl_join_02) + nrow(tbl_join_03) +
-      nrow(tbl_join_04)
-stopifnot(nr == nrow(z))
-
-saveRDS(tbl_join_01, file = file.path("data", "tbl_join_01.rds"))
-saveRDS(tbl_join_02, file = file.path("data", "tbl_join_02.rds"))
-saveRDS(tbl_join_03, file = file.path("data", "tbl_join_03.rds"))
-saveRDS(tbl_join_04, file = file.path("data", "tbl_join_04.rds"))
+for (j in seq_len(nparts))
+{
+  tbl_join <- z[ids == j,]
+  saveRDS(tbl_join, file = file.path("data", sprintf("tbl_join_%02d.rds", j)))
+}
 
 # Code to commit the data to a new branch
 

@@ -13,6 +13,8 @@ ctgov_query(
   criteria_kw = NULL,
   intervention_kw = NULL,
   intervention_desc_kw = NULL,
+  outcome_kw = NULL,
+  outcome_desc_kw = NULL,
   conditions_kw = NULL,
   population_kw = NULL,
   date_range = NULL,
@@ -61,10 +63,19 @@ criteria field. Set to
 \code{NULL} to avoid searching this field.}
 
 \item{intervention_kw}{character vector of keywords to search in the
-intervention names field.}
+intervention names field. Set to
+\code{NULL} to avoid searching this field.}
 
 \item{intervention_desc_kw}{character vector of keywords to search in the
 intervention description field. Set to
+\code{NULL} to avoid searching this field.}
+
+\item{outcome_kw}{character vector of keywords to search in the
+outcome measures field. Set to
+\code{NULL} to avoid searching this field.}
+
+\item{outcome_desc_kw}{character vector of keywords to search in the
+outcome description field. Set to
 \code{NULL} to avoid searching this field.}
 
 \item{conditions_kw}{character vector of keywords to search in the

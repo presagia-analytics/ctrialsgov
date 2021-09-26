@@ -34,10 +34,19 @@
 #'                                \code{NULL} to avoid searching this field.
 #'
 #' @param intervention_kw         character vector of keywords to search in the
-#'                                intervention names field.
+#'                                intervention names field. Set to
+#'                                \code{NULL} to avoid searching this field.
 #'
 #' @param intervention_desc_kw    character vector of keywords to search in the
 #'                                intervention description field. Set to
+#'                                \code{NULL} to avoid searching this field.
+#'
+#' @param outcome_kw              character vector of keywords to search in the
+#'                                outcome measures field. Set to
+#'                                \code{NULL} to avoid searching this field.
+#'
+#' @param outcome_desc_kw         character vector of keywords to search in the
+#'                                outcome description field. Set to
 #'                                \code{NULL} to avoid searching this field.
 #'
 #' @param conditions_kw           character vector of keywords to search in the
@@ -136,6 +145,8 @@ ctgov_query <- function(
   criteria_kw = NULL,
   intervention_kw = NULL,
   intervention_desc_kw = NULL,
+  outcome_kw = NULL,
+  outcome_desc_kw = NULL,
   conditions_kw = NULL,
   population_kw = NULL,
   date_range = NULL,
@@ -164,6 +175,8 @@ ctgov_query <- function(
   assert(is.null(official_title_kw) | is.character(official_title_kw))
   assert(is.null(intervention_kw) | is.character(intervention_kw))
   assert(is.null(intervention_desc_kw) | is.character(intervention_desc_kw))
+  assert(is.null(outcome_kw) | is.character(outcome_kw))
+  assert(is.null(outcome_desc_kw) | is.character(outcome_desc_kw))
   assert(is.null(conditions_kw) | is.character(conditions_kw))
   assert(is.null(population_kw) | is.character(population_kw))
 
@@ -357,6 +370,22 @@ ctgov_query <- function(
     )
     z <- z[ind,]
   }
+  if (!is.null(outcome_kw))
+  {
+    inames <- purrr::map_chr(
+      z$outcomes, function(v) paste0(v$measure, collapse = " ")
+    )
+    ind <- search_kw(inames, outcome_kw, ignore_case, match_all)
+    z <- z[ind,]
+  }
+  if (!is.null(outcome_desc_kw))
+  {
+    inames <- purrr::map_chr(
+      z$outcomes, function(v) paste0(v$description, collapse = " ")
+    )
+    ind <- search_kw(inames, outcome_desc_kw, ignore_case, match_all)
+    z <- z[ind,]
+  } 
   if (!is.null(conditions_kw))
   {
     ind <- search_kw(z$conditions, conditions_kw, ignore_case, match_all)

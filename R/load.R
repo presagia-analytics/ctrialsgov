@@ -56,6 +56,19 @@ ctgov_create_data <- function(con, verbose = TRUE) {
     )
   )
 
+  tbl_outcm <- tibble::as_tibble(
+    DBI::dbGetQuery(
+      con,
+      sprintf(
+        paste0(
+          "select nct_id, outcome_type, measure, time_frame, description from ",
+          "%sdesign_outcomes;"
+        ),
+        format_schema()
+      )
+    )
+  )
+
   tbl_bfsum <- tibble::as_tibble(
     DBI::dbGetQuery(
       con,
@@ -168,6 +181,10 @@ ctgov_create_data <- function(con, verbose = TRUE) {
     tbl_inter, .data$nct_id, .key = "interventions"
   )
 
+  tbl_outcm_nest <- dplyr::nest_by(
+    tbl_outcm, .data$nct_id, .key = "outcomes"
+  )
+
   # Join into combined tables
   cmsg(verbose, "[%s] STORE COMBINED DATA\n", isotime())
 
@@ -176,6 +193,7 @@ ctgov_create_data <- function(con, verbose = TRUE) {
   tbl_join <- dplyr::left_join(tbl_join, tbl_spons, by = "nct_id")
   tbl_join <- dplyr::left_join(tbl_join, tbl_conds, by = "nct_id")
   tbl_join <- dplyr::left_join(tbl_join, tbl_inter_nest, by = "nct_id")
+  tbl_join <- dplyr::left_join(tbl_join, tbl_outcm_nest, by = "nct_id")
   tbl_join <- dplyr::arrange(tbl_join, dplyr::desc(.data$start_date))
 
   # Save the data in memory
@@ -226,8 +244,8 @@ ctgov_load_cache <- function(force_download = FALSE) {
                      "ctrialsgov/fdata/data-raw/data/")
 
   # file paths
-  fp <- file.path(dname, sprintf("tbl_join_%02d.rds", seq_len(4L)))
-  up <- paste0(base_url, sprintf("tbl_join_%02d.rds", seq_len(4L)))
+  fp <- file.path(dname, sprintf("tbl_join_%02d.rds", seq_len(6L)))
+  up <- paste0(base_url, sprintf("tbl_join_%02d.rds", seq_len(6L)))
 
   # download the files if needed
   for (j in seq_along(fp))
@@ -238,6 +256,6 @@ ctgov_load_cache <- function(force_download = FALSE) {
   # load the datasets from local cache
   df <- lapply(fp, readRDS)
 
-  # combine the two datasets and store in the volatiles object
+  # combine the datasets and store in the volatiles object
   .volatiles$tbl_join <- bind_rows(df)
 }
