@@ -4,10 +4,12 @@
 \alias{ctgov_to_plotly}
 \title{Convert a ctrialsgov Visualization to Plotly}
 \usage{
-ctgov_to_plotly(p)
+ctgov_to_plotly(p, ...)
 }
 \arguments{
 \item{p}{the plot returned by `ctgov_plot_timeline()`.}
+
+\item{...}{currently not used.}
 }
 \description{
 Convert a ctrialsgov Visualization to Plotly
