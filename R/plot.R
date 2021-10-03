@@ -100,6 +100,11 @@ ctgov_to_plotly.default <- function(p, ...) {
   )
 }
 
+#' @export
+ctgov_to_plotly.gg <- function(p, ...) {
+  ggplotly(p, ...)
+}
+
 
 ctgov_to_plotly.ctgov_bar_plot <- function(p, ...) {
   pp <- plotly::ggplotly(p, tooltip = "text")
