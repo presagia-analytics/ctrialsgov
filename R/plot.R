@@ -63,29 +63,45 @@ ctgov_plot_timeline <- function(
   x$width <- as.integer(x[[completion_date]]) - as.integer(x[[start_date]])
   x$tooltip <- tooltip
   x[[start_date]] <- x[[start_date]] + days(round(x$width / 2))
-  ggplot(
-    data = x, 
-    aes_string(
-      x = start_date,
-      y = label_column,
-      fill = color,
-      width = "width",
-      text = "tooltip"
-    )
-  ) +
-  geom_tile(height = 0.8) +
-  ylab(label_column) +
-  xlab("Date") +
-  guides(fill = guide_legend(color))
+  p <- ggplot(
+      data = x, 
+      aes_string(
+        x = start_date,
+        y = label_column,
+        fill = color,
+        width = "width",
+        text = "tooltip"
+      )
+    ) +
+    geom_tile(height = 0.8) +
+    ylab(label_column) +
+    xlab("Date") +
+    guides(fill = guide_legend(color))
+  class(p) <- c("ctgov_bar_plot", class(p))
+  p
 }
 
 
 #' @title Convert a ctrialsgov Visualization to Plotly
 #'
 #' @param p the plot returned by `ctgov_plot_timeline()`.
+#' @param ... currently not used.
 #' @importFrom plotly ggplotly
 #' @export
-ctgov_to_plotly <- function(p) {
+ctgov_to_plotly <- function(p, ...) {
+  UseMethod("ctgov_to_plotly", p)
+}
+
+#' @export
+ctgov_to_plotly.default <- function(p, ...) {
+  stop(
+    "Don't know how to create plotly plot from object of type:",
+    paste(class(p), collapse = " ")
+  )
+}
+
+
+ctgov_to_plotly.ctgov_bar_plot <- function(p, ...) {
   pp <- plotly::ggplotly(p, tooltip = "text")
 
   # this gets the y-axis category values
