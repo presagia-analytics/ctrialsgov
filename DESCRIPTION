@@ -1,12 +1,17 @@
 Package: ctrialsgov
 Type: Package
 Title: Query Data from ClinicalTrials.gov
-Version: 0.2.2
+Version: 0.2.3
 Authors@R: c(
   person(given = "Taylor",
            family = "Arnold",
            email = "tarnold2@richmond.edu",
            role = c("aut", "cre"),
+           comment = c(ORCID = "http://orcid.org/0000-0003-0576-0669")),
+  person(given = "Auston",
+           family = "Wei",
+           email = "awei@telperian.com",
+           role = c("aut"),
            comment = c(ORCID = "http://orcid.org/0000-0003-0576-0669")),
   person(given = "Michael J.",
          family = "Kane",
@@ -14,7 +19,12 @@ Authors@R: c(
          role = c("aut"),
          comment = c(ORCID = "http://orcid.org/0000-0003-1899-6662")))
 Maintainer: Taylor Arnold <tarnold2@richmond.edu>
-Description: Create and query database from the ClinicalTrials.gov.
+Description: Tools to create and query database from the U.S. National Library
+  of Medicine's ClinicalTrials database <https://clinicaltrials.gov/>. Functions
+  provide access a variety of techniques for searching the data using range
+  queries, categorical filtering, and by searching for full-text keywords. 
+  Minimal graphical tools are also provided for interactively exploring the
+  constructed data.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
