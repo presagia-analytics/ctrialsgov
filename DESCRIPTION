@@ -1,6 +1,6 @@
 Package: ctrialsgov
 Type: Package
-Title: Query Data from ClinicalTrials.gov
+Title: Query Data from U.S. National Library of Medicine's Clinical Trials Database
 Version: 0.2.5
 Authors@R: c(
   person(given = "Taylor",
