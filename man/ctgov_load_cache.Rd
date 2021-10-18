@@ -10,6 +10,9 @@ ctgov_load_cache(force_download = FALSE)
 \item{force_download}{logical flag; should the cache be re-downloaded if
 it already exists? defaults to \code{FALSE}}
 }
+\value{
+does not return any value; used only for side effects
+}
 \description{
 This function downloads a saved version of the full clinical trials dataset
 from the package's development repository on GitHub (~150MB) and loads it

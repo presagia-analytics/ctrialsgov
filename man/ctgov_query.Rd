@@ -160,6 +160,9 @@ capitalization. The default is \code{TRUE}.}
 \item{match_all}{logical. Should the results required matching
 all the keywords? The default is \code{FALSE}.}
 }
+\value{
+a tibble object queried from the loaded database
+}
 \description{
 This function selects a subset of the clinical trials data by using a
 a variety of different search parameters. These include free text search

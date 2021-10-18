@@ -3,6 +3,7 @@
 #' @param x the data.frame object returned from a query.
 #' @importFrom purrr map_chr
 #' @importFrom stringi stri_split
+#' @return a string that can be used as a label in ggplotly
 #' @export
 ctgov_gantt_labeller <- function(x) {
 
@@ -86,6 +87,8 @@ ctgov_plot_timeline <- function(
 #'
 #' @param p the plot returned by `ctgov_plot_timeline()`.
 #' @param ... currently not used.
+#' @return a Plotly object
+#'
 #' @importFrom plotly ggplotly
 #' @export
 ctgov_to_plotly <- function(p, ...) {

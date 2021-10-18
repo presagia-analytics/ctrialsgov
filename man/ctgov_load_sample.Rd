@@ -6,6 +6,9 @@
 \usage{
 ctgov_load_sample()
 }
+\value{
+does not return any value; used only for side effects
+}
 \description{
 This function loads a sample dataset for testing and prototyping purposes.
 after running, all of the functions in the package can then be used with
