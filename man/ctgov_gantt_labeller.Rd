@@ -9,6 +9,9 @@ ctgov_gantt_labeller(x)
 \arguments{
 \item{x}{the data.frame object returned from a query.}
 }
+\value{
+a string that can be used as a label in ggplotly
+}
 \description{
 Create a Gantt Labeler for Timeline Tooltips
 }

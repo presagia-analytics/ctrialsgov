@@ -12,6 +12,9 @@ ctgov_create_data(con, verbose = TRUE)
 \item{verbose}{logical flag; should progress messages be printed?;
 defaults to \code{TRUE}}
 }
+\value{
+does not return any value; used only for side effects
+}
 \description{
 This function must be run prior to other functions in the package. It
 creates a parsed and cached version of the clinical trials dataset in

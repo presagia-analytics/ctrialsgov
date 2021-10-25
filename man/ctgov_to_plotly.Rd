@@ -11,6 +11,9 @@ ctgov_to_plotly(p, ...)
 
 \item{...}{currently not used.}
 }
+\value{
+a Plotly object
+}
 \description{
 Convert a ctrialsgov Visualization to Plotly
 }

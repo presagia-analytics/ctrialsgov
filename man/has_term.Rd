@@ -13,6 +13,9 @@ has_term(s, pattern, ignore_case = TRUE)
 
 \item{ignore_case}{should the case be ignored? Default TRUE}
 }
+\value{
+a single logical value
+}
 \description{
 Does a Term Appear in a Vector of Strings?
 }

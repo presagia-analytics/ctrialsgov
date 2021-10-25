@@ -133,6 +133,7 @@
 #'
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database 
 #'
 #' @importFrom purrr map_chr
 #' @export
@@ -405,6 +406,8 @@ ctgov_query <- function(
 #'
 #' Returns a list showing the available category levels for querying the data
 #' with the \code{ctgov_query} function.
+#' 
+#' @return a named list of allowed categorical values for the query
 #'
 #' @export
 ctgov_query_terms <- function()

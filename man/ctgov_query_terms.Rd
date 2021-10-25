@@ -6,6 +6,9 @@
 \usage{
 ctgov_query_terms()
 }
+\value{
+a named list of allowed categorical values for the query
+}
 \description{
 Returns a list showing the available category levels for querying the data
 with the \code{ctgov_query} function.

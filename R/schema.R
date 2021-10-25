@@ -1,4 +1,3 @@
-
 #' @title Get and Set the Default Schema
 #'
 #' @description This function sets the schema in which tables in which
@@ -17,6 +16,7 @@
 #' A return of "" from the get functions indicates a schema is not specified.
 #' @aliases ctgov_get_schema ctgov_set_schema
 #' @param schema the name of the schema. (Default is NULL - None)
+#' @return no return value; used for side effects
 #' @export
 ctgov_schema <- function(schema = NULL) {
   if (is.null(schema)) {

@@ -9,6 +9,7 @@
 #'                  defaults to \code{TRUE}
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return does not return any value; used only for side effects
 #'
 #' @export
 #' @importFrom rlang .data
@@ -31,7 +32,9 @@ ctgov_create_data <- function(con, verbose = TRUE) {
       sprintf(
         paste(c("select nct_id, ",
           "start_date, phase, enrollment, brief_title, official_title, ",
-          "primary_completion_date, study_type from %sstudies;"),
+          "primary_completion_date, study_type, overall_status as rec_status, ",
+          "completion_date, last_update_posted_date as last_update ",
+          "from %sstudies;"),
           collapse = ""),
         format_schema()
       )
@@ -209,6 +212,7 @@ ctgov_create_data <- function(con, verbose = TRUE) {
 #' from ClinicalTrials.gov at the time of the package creation.
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return does not return any value; used only for side effects
 #'
 #' @export
 #' @importFrom utils data
@@ -231,6 +235,7 @@ ctgov_load_sample <- function()
 #'                         it already exists? defaults to \code{FALSE}
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return does not return any value; used only for side effects
 #'
 #' @export
 #' @importFrom dplyr bind_rows

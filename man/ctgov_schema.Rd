@@ -11,6 +11,9 @@ ctgov_schema(schema = NULL)
 \arguments{
 \item{schema}{the name of the schema. (Default is NULL - None)}
 }
+\value{
+no return value; used for side effects
+}
 \description{
 This function sets the schema in which tables in which
 the CT Trials tables reside.

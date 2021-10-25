@@ -11,6 +11,6 @@ test_that("sample that plots do not error", {
   p <- ctgov_plot_timeline(res)
   pp <- ctgov_to_plotly(p)
 
-  expect_equal(class(p), c("gg", "ggplot"))
+  expect_equal(class(p), c("ctgov_bar_plot", "gg", "ggplot"))
   expect_equal(class(pp), c("plotly", "htmlwidget"))
 })
