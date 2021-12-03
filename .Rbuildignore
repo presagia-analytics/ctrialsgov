@@ -2,6 +2,7 @@
 ^presentation$
 ^.covrignore$
 ^doc$
+^paper$
 ^Meta$
 ^README\.Rmd$
 ^codecov\.yml$
