@@ -204,33 +204,33 @@ ctgov_query <- function(
   ############################################################################
   # check that search options match choices; do this first to makes sure any
   # errors are caught fast
-  if (!is.null(study_type)) { match.arg(study_type, ol$study_type, TRUE) }
-  if (!is.null(allocation)) { match.arg(allocation, ol$allocation, TRUE) }
+  if (!is.null(study_type)) { match.arg(study_type, .volatiles$ol$study_type, TRUE) }
+  if (!is.null(allocation)) { match.arg(allocation, .volatiles$ol$allocation, TRUE) }
   if (!is.null(intervention_model))
   {
-    match.arg(intervention_model, ol$intervention_model, TRUE)
+    match.arg(intervention_model, .volatiles$ol$intervention_model, TRUE)
   }
   if (!is.null(observational_model)) {
-    match.arg(observational_model, ol$observational_model, TRUE)
+    match.arg(observational_model, .volatiles$ol$observational_model, TRUE)
   }
   if (!is.null(primary_purpose)) {
-    match.arg(primary_purpose, ol$primary_purpose, TRUE)
+    match.arg(primary_purpose, .volatiles$ol$primary_purpose, TRUE)
   }
   if (!is.null(time_perspective))
   {
-    match.arg(time_perspective, ol$time_perspective, TRUE)
+    match.arg(time_perspective, .volatiles$ol$time_perspective, TRUE)
   }
   if (!is.null(masking_description))
   {
-    match.arg(masking_description, ol$masking_description, TRUE)
+    match.arg(masking_description, .volatiles$ol$masking_description, TRUE)
   }
   if (!is.null(sampling_method))
   {
-    match.arg(sampling_method, ol$sampling_method, TRUE)
+    match.arg(sampling_method, .volatiles$ol$sampling_method, TRUE)
   }
-  if (!is.null(phase)) { match.arg(phase, ol$phase, TRUE) }
-  if (!is.null(gender)) { match.arg(phase, ol$gender, TRUE) }
-  if (!is.null(sponsor_type)) { match.arg(sponsor_type, ol$sponsor_type, TRUE) }
+  if (!is.null(phase)) { match.arg(phase, .volatiles$ol$phase, TRUE) }
+  if (!is.null(gender)) { match.arg(phase, .volatiles$ol$gender, TRUE) }
+  if (!is.null(sponsor_type)) { match.arg(sponsor_type, .volatiles$ol$sponsor_type, TRUE) }
 
   ############################################################################
   # convert the date range to a date object; again, do this first to make sure
@@ -412,5 +412,5 @@ ctgov_query <- function(
 #' @export
 ctgov_query_terms <- function()
 {
-  return(ol)
+  return(.volatiles$ol)
 }

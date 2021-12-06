@@ -202,6 +202,7 @@ ctgov_create_data <- function(con, verbose = TRUE) {
   # Save the data in memory
   cmsg(verbose, "[%s] LOADING %d ROWS OF DATA\n", isotime(), nrow(tbl_join))
   .volatiles$tbl_join <- tbl_join
+  make_categories()
 }
 
 #' Load sample dataset
@@ -220,6 +221,7 @@ ctgov_load_sample <- function()
 {
   data("tbl_join_sample", package = "ctrialsgov", envir = (en <- new.env()))
   .volatiles$tbl_join <- en$tbl_join_sample
+  make_categories()
 }
 
 #' Download and/or load cached data
@@ -263,4 +265,5 @@ ctgov_load_cache <- function(force_download = FALSE) {
 
   # combine the datasets and store in the volatiles object
   .volatiles$tbl_join <- bind_rows(df)
+  make_categories()
 }

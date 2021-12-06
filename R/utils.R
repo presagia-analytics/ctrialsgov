@@ -69,30 +69,32 @@ search_kw <- function(txt, query, ignore_case = FALSE, match_all = FALSE)
   return(ind)
 }
 
-ol <- list(
-  study_type = c("Interventional", "Observational",
-                 "Observational [Patient Registry]", "Expanded Access"),
-  allocation = c("Randomized", "N/A", "Non-Randomized"),
-  intervention_model = c("Parallel Assignment", "Single Group Assignment",
-                         "Crossover Assignment", "Sequential Assignment",
-                         "Factorial Assignment"),
-  observational_model = c("Cohort", "Case-Control", "Case-Only", "Other",
-                          "Ecologic or Community", "Case-Crossover",
-                          "Defined Population", "Family-Based"),
-  primary_purpose =  c("Treatment", "Prevention", "Basic Science",
-                       "Supportive Care", "Other", "Diagnostic",
-                       "Health Services Research", "Screening",
-                       "Device Feasibility", "Educational/Counseling/Training"),
-  time_perspective = c("Prospective", "Retrospective",
-                       "Cross-Sectional", "Other"),
-  masking_description = c("None (Open Label)", "Single", "Double", "Triple",
-                          "Quadruple"),
-  sampling_method = c("", "Non-Probability Sample", "Probability Sample"),
-  phase = c("N/A", "Early Phase 1", "Phase 1", "Phase 1/Phase 2", "Phase 2",
-            "Phase 2/Phase 3", "Phase 3", "Phase 4"),
-  gender = c("All", "Female", "Male"),
-  sponsor_type = c("Industry", "NIH", "U.S. Fed", "Other")
-)
+get_lvl <- function(v) {
+  v <- unique(v)
+  v <- v[!is.na(v)]
+  v <- sort(v)
+  v
+}
+
+make_categories <- function()
+{
+  assert_data_loaded()
+
+  .volatiles$ol <- list(
+    study_type = get_lvl(.volatiles$tbl_join$study_type),
+    allocation = get_lvl(.volatiles$tbl_join$allocation),
+    intervention_model = get_lvl(.volatiles$tbl_join$intervention_model),
+    observational_model = get_lvl(.volatiles$tbl_join$observational_model),
+    primary_purpose = get_lvl(.volatiles$tbl_join$primary_purpose),
+    time_perspective = get_lvl(.volatiles$tbl_join$time_perspective),
+    masking_description = get_lvl(.volatiles$tbl_join$masking_description),
+    sampling_method = get_lvl(.volatiles$tbl_join$sampling_method),
+    phase = get_lvl(.volatiles$tbl_join$phase),
+    gender = get_lvl(.volatiles$tbl_join$gender),
+    sponsor_type = get_lvl(.volatiles$tbl_join$sponsor_type)
+  )
+
+}
 
 ifnull <- function(value, default)
 {
