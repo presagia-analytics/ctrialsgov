@@ -267,3 +267,44 @@ ctgov_load_cache <- function(force_download = FALSE) {
   .volatiles$tbl_join <- bind_rows(df)
   make_categories()
 }
+
+#' Save Current Database
+#'
+#' Saves a version of the current active database as a binary R
+#' file.
+#'
+#' @param file      a character string naming a file; should have
+#'                  the extension 'rds'
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return does not return any value; used only for side effects
+#'
+#' @export
+ctgov_save_file <- function(file) {
+  assert(is.character(file) & length(file) == 1L)
+
+  saveRDS(.volatiles$tbl_join, file) 
+}
+
+#' Load Database from File
+#'
+#' Loads a version of the current active database as a binary R
+#' file.
+#'
+#' @param file      a character string naming a file; should have
+#'                  the extension 'rds'
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return does not return any value; used only for side effects
+#'
+#' @export
+ctgov_load_file <- function(file) {
+  assert(is.character(file) & length(file) == 1L)
+
+  .volatiles$tbl_join <- readRDS(file) 
+  make_categories()
+}
+
+
+
+
