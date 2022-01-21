@@ -15,24 +15,25 @@ ctgov_gantt_labeller <- function(x) {
       ~ .x %>%
         stri_split(fixed = "|") %>%
         unlist() %>%
-        paste(collapse = "\n\t\t")
+        trimws() %>%
+        paste(collapse = "</br>&nbsp;&nbsp;&nbsp;&nbsp;", sep = "")
     )
 
   interventions <-
     map_chr(
       x$interventions,
-      ~ paste(.x$name, collapse = "\n\t\t")
+      ~ paste0(.x$name, collapse = "</br>&nbsp;&nbsp;&nbsp;&nbsp;")
     )
-
   paste0(
-    "</br>", "NCT ID: ", x$nct_id, "</br>",
+    "</br>", "NCT ID: ", trimws(x$nct_id), "</br>",
 #    "Status: ", x$status, "</br>",
-    "Sponsor: ", x$sponsor, "</br>",
-    "Start Date: ", x$start_date, "</br>",
-    "Completion Date: ", x$primary_completion_date, "</br>",
-    "Conditions:\n\t\t", conditions, "</br>",
-    "Interventions:\n\t\t", interventions, "</br>",
-    "Enrollment: ", x$enrollment, "</br>"
+    "Sponsor: ", trimws(x$sponsor), "</br>",
+    "Start Date: ", trimws(x$start_date), "</br>",
+    "Completion Date: ", trimws(x$primary_completion_date), "</br>",
+    "Conditions:</br>&nbsp;&nbsp;&nbsp;&nbsp;", conditions, "</br>",
+    "Interventions:</br>&nbsp;&nbsp;&nbsp;&nbsp;", interventions, "</br>",
+    "Enrollment: ", trimws(x$enrollment), "</br>",
+    sep = ""
   )
 }
 
@@ -61,6 +62,7 @@ ctgov_plot_timeline <- function(
   label_column = "nct_id",
   color = label_column,
   tooltip = ctgov_gantt_labeller(x)) {
+
   x$width <- as.integer(x[[completion_date]]) - as.integer(x[[start_date]])
   x$tooltip <- tooltip
   x[[start_date]] <- x[[start_date]] + days(round(x$width / 2))
@@ -108,9 +110,12 @@ ctgov_to_plotly.gg <- function(p, ...) {
   ggplotly(p, ...)
 }
 
-
+#' importFrom plotly ggplotly layout
+#' @export
 ctgov_to_plotly.ctgov_bar_plot <- function(p, ...) {
-  pp <- plotly::ggplotly(p, tooltip = "text")
+  class(p) <- class(p)[-1]
+  pp <- ggplotly(p, tooltip = "tooltip") 
+  pp <-  plotly::layout(pp, hoverlabel = list(align = "left"))
 
   # this gets the y-axis category values
   cats <- pp$x$layout$yaxis$categoryarray
