@@ -1,5 +1,6 @@
 .volatiles <- new.env(parent=emptyenv())
 
+.volatiles$tbl <- NULL
 .volatiles$ol <- list(
   study_type = c("Interventional", "Observational",
                  "Observational [Patient Registry]", "Expanded Access"),

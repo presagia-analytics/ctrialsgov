@@ -73,7 +73,7 @@ ctgov_query(study_type = "Interventional")
 Or, all of the interventional studies that have a primary industry sponsor:
 
 ```{r}
-ctgov_query(study_type = "Interventional", sponsor_type = "Industry")
+ctgov_query(study_type = "Interventional", sponsor_type = "INDUSTRY")
 ```
 
 A few fields have continuous values that can be searched by giving a vector

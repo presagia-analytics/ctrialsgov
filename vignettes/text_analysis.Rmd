@@ -94,7 +94,7 @@ Phase 2 trials.
 
 ```{r}
 z <- ctgov_query(
-  study_type = "Interventional", sponsor_type = "Industry", phase = "Phase 2"
+  study_type = "Interventional", sponsor_type = "INDUSTRY", phase = "Phase 2"
 )
 scores <- ctgov_text_similarity(z$description, min_df = 0, max_df = 0.1)
 dim(scores)
@@ -107,7 +107,7 @@ Here for example we can see five studies that use similar terms in their
 descriptions:
 
 ```{r}
-index <- order(scores[,100], decreasing = TRUE)[1:5]
+index <- order(scores[,20], decreasing = TRUE)[1:5]
 z$brief_title[index]
 ```
 

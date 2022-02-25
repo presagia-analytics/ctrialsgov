@@ -15,8 +15,8 @@
 #' @importFrom rlang .data
 #' @importFrom DBI dbGetQuery
 #' @importFrom tibble as_tibble
-#' @importFrom dplyr filter if_else transmute group_by ungroup left_join nest_by desc arrange
-#' @importFrom stringi stri_trim stri_replace_all
+#' @importFrom dplyr filter if_else transmute group_by ungroup left_join nest_by desc arrange select inner_join
+#' @importFrom stringi stri_trim stri_replace_all stri_sub stri_paste
 #' @importFrom lubridate today
 ctgov_create_data <- function(con, verbose = TRUE) {
   assert(is.logical(verbose) & length(verbose) == 1L)
@@ -125,6 +125,42 @@ ctgov_create_data <- function(con, verbose = TRUE) {
     )
   )
 
+  tbl_refs <- tibble::as_tibble(
+    DBI::dbGetQuery(
+      con,
+      sprintf(
+        paste(c("select nct_id, pmid, citation ",
+          "from %sstudy_references;"),
+          collapse = ""),
+        format_schema()
+      )
+    )
+  )
+
+  tbl_outcome <- tibble::as_tibble(
+    DBI::dbGetQuery(
+      con,
+      sprintf(
+        paste(c("select id, nct_id, outcome_type, title ",
+          "from %soutcomes;"),
+          collapse = ""),
+        format_schema()
+      )
+    )
+  )
+
+  tbl_outcome_ana <- tibble::as_tibble(
+    DBI::dbGetQuery(
+      con,
+      sprintf(
+        paste(c("select outcome_id, param_type, param_value, p_value ",
+          "from %soutcome_analyses;"),
+          collapse = ""),
+        format_schema()
+      )
+    )
+  )
+
   # Create a few variables
   cmsg(verbose, "[%s] CREATE VARIABLES\n", isotime())
   tbl_inter$name <- sprintf(
@@ -199,28 +235,55 @@ ctgov_create_data <- function(con, verbose = TRUE) {
   tbl_join <- dplyr::left_join(tbl_join, tbl_outcm_nest, by = "nct_id")
   tbl_join <- dplyr::arrange(tbl_join, dplyr::desc(.data$start_date))
 
-  # Save the data in memory
+  # Save the main data in memory
   cmsg(verbose, "[%s] LOADING %d ROWS OF DATA\n", isotime(), nrow(tbl_join))
-  .volatiles$tbl_join <- tbl_join
+  .volatiles$tbl$join <- tbl_join
   make_categories()
+
+  # Create publications data
+  cmsg(verbose, "[%s] CREATING PUBLICATION DATA\n", isotime())
+  tbl_refs$doi <- stringi::stri_sub(
+    stringi::stri_extract_first(
+      tbl_refs$citation, regex = "doi: [^ ]+"
+    ), 6L, -1L
+  )
+  .volatiles$tbl$refs <- tbl_refs
+
+  # Create outcome data
+  cmsg(verbose, "[%s] CREATING OUTCOME DATA\n", isotime())
+  tbl_outcome <- dplyr::inner_join(
+    tbl_outcome, tbl_outcome_ana, by = c("id" = "outcome_id")
+  )
+  tbl_outcome <- dplyr::select(tbl_outcome, -.data$id)
+  .volatiles$tbl$outcome <- tbl_outcome
 }
 
 #' Load sample dataset
 #'
 #' This function loads a sample dataset for testing and prototyping purposes.
 #' after running, all of the functions in the package can then be used with
-#' this sample data. It consists of a 2.5% sample of data that was available
+#' this sample data. It consists of a random sample of trials that was available
 #' from ClinicalTrials.gov at the time of the package creation.
+#'
+#' @param cancer_studies     logical; should we load a currated list of cancer
+#'                           clinical trials
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return does not return any value; used only for side effects
 #'
 #' @export
 #' @importFrom utils data
-ctgov_load_sample <- function()
+ctgov_load_sample <- function(cancer_studies = FALSE)
 {
-  data("tbl_join_sample", package = "ctrialsgov", envir = (en <- new.env()))
-  .volatiles$tbl_join <- en$tbl_join_sample
+  if (!cancer_studies)
+  {
+    data("tbl_join_sample", package = "ctrialsgov", envir = (en <- new.env()))
+    .volatiles$tbl <- en$tbl_join_sample
+  } else {
+    data("cancer_studies", package = "ctrialsgov", envir = (en <- new.env()))
+    .volatiles$tbl <- en$cancer_studies
+  }
+
   make_categories()
 }
 
@@ -247,24 +310,20 @@ ctgov_load_cache <- function(force_download = FALSE) {
 
   # local and GitHub base links
   dname <- system.file("extdata", package = "ctrialsgov")
-  base_url <- paste0("https://raw.githubusercontent.com/presagia-analytics/",
-                     "ctrialsgov/fdata/data-raw/data/")
-
-  # file paths
-  fp <- file.path(dname, sprintf("tbl_join_%02d.rds", seq_len(6L)))
-  up <- paste0(base_url, sprintf("tbl_join_%02d.rds", seq_len(6L)))
+  base_url <- paste0(
+    "https://github.com/presagia-analytics/ctrialsgov/releases/download",
+    "/data/tbl_data.Rds"
+  )
+  fp <- file.path(dname, "tbl_data.Rds")
 
   # download the files if needed
-  for (j in seq_along(fp))
+  if ( (!file.exists(fp)) | force_download)
   {
-    if (!file.exists(fp[j]) | force_download) { download.file(up[j], fp[j]) }
+    download.file(base_url, fp)
   }
 
-  # load the datasets from local cache
-  df <- lapply(fp, readRDS)
-
   # combine the datasets and store in the volatiles object
-  .volatiles$tbl_join <- bind_rows(df)
+  .volatiles$tbl <- readRDS(fp)
   make_categories()
 }
 
@@ -283,7 +342,7 @@ ctgov_load_cache <- function(force_download = FALSE) {
 ctgov_save_file <- function(file) {
   assert(is.character(file) & length(file) == 1L)
 
-  saveRDS(.volatiles$tbl_join, file) 
+  saveRDS(.volatiles$tbl, file)
 }
 
 #' Load Database from File
@@ -301,10 +360,6 @@ ctgov_save_file <- function(file) {
 ctgov_load_file <- function(file) {
   assert(is.character(file) & length(file) == 1L)
 
-  .volatiles$tbl_join <- readRDS(file) 
+  .volatiles$tbl <- readRDS(file)
   make_categories()
 }
-
-
-
-

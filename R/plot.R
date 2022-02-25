@@ -67,7 +67,7 @@ ctgov_plot_timeline <- function(
   x$tooltip <- tooltip
   x[[start_date]] <- x[[start_date]] + days(round(x$width / 2))
   p <- ggplot(
-      data = x, 
+      data = x,
       aes_string(
         x = start_date,
         y = label_column,
@@ -97,7 +97,6 @@ ctgov_to_plotly <- function(p, ...) {
   UseMethod("ctgov_to_plotly", p)
 }
 
-#' @export
 ctgov_to_plotly.default <- function(p, ...) {
   stop(
     "Don't know how to create plotly plot from object of type:",
@@ -105,16 +104,14 @@ ctgov_to_plotly.default <- function(p, ...) {
   )
 }
 
-#' @export
 ctgov_to_plotly.gg <- function(p, ...) {
   ggplotly(p, ...)
 }
 
 #' importFrom plotly ggplotly layout
-#' @export
 ctgov_to_plotly.ctgov_bar_plot <- function(p, ...) {
   class(p) <- class(p)[-1]
-  pp <- ggplotly(p, tooltip = "tooltip") 
+  pp <- ggplotly(p, tooltip = "tooltip")
   pp <-  plotly::layout(pp, hoverlabel = list(align = "left"))
 
   # this gets the y-axis category values

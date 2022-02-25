@@ -87,6 +87,6 @@ test_that("check categorical queries", {
   res <- ctgov_query(gender = "All")
   expect_true(all(res$gender == "All"))
 
-  res <- ctgov_query(sponsor_type = "Industry")
-  expect_true(all(res$sponsor_type == "Industry"))
+  res <- ctgov_query(sponsor_type = "INDUSTRY")
+  expect_true(all(res$sponsor_type == "INDUSTRY"))
 })

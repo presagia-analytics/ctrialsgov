@@ -4,7 +4,11 @@
 \alias{ctgov_load_sample}
 \title{Load sample dataset}
 \usage{
-ctgov_load_sample()
+ctgov_load_sample(cancer_studies = FALSE)
+}
+\arguments{
+\item{cancer_studies}{logical; should we load a currated list of cancer
+clinical trials}
 }
 \value{
 does not return any value; used only for side effects
@@ -12,7 +16,7 @@ does not return any value; used only for side effects
 \description{
 This function loads a sample dataset for testing and prototyping purposes.
 after running, all of the functions in the package can then be used with
-this sample data. It consists of a 2.5% sample of data that was available
+this sample data. It consists of a random sample of trials that was available
 from ClinicalTrials.gov at the time of the package creation.
 }
 \author{

@@ -133,7 +133,7 @@
 #'
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
-#' @return a tibble object queried from the loaded database 
+#' @return a tibble object queried from the loaded database
 #'
 #' @importFrom purrr map_chr
 #' @export
@@ -242,7 +242,7 @@ ctgov_query <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- .volatiles$tbl_join
+    z <- .volatiles$tbl$join
   } else {
     z <- data
   }
@@ -386,7 +386,7 @@ ctgov_query <- function(
     )
     ind <- search_kw(inames, outcome_desc_kw, ignore_case, match_all)
     z <- z[ind,]
-  } 
+  }
   if (!is.null(conditions_kw))
   {
     ind <- search_kw(z$conditions, conditions_kw, ignore_case, match_all)
@@ -406,7 +406,7 @@ ctgov_query <- function(
 #'
 #' Returns a list showing the available category levels for querying the data
 #' with the \code{ctgov_query} function.
-#' 
+#'
 #' @return a named list of allowed categorical values for the query
 #'
 #' @export
