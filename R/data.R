@@ -22,3 +22,13 @@ NULL
 #' @docType data
 #' @keywords data
 NULL
+
+#' Conditions Lookup Table
+#'
+#' Data frame giving a normalisation mapping for the conditions field in the
+#' clinical trials database
+#'
+#' @name condition_lookup
+#' @docType data
+#' @keywords data
+NULL
