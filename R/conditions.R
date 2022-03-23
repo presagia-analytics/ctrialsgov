@@ -60,10 +60,10 @@ ctgov_norm_conditions <- function(data)
   dt <- dplyr::select(data, nct_id)
   dt <- dplyr::left_join(dt, res, by = "nct_id")
   index <- which(is.na(dt$condition))
+  dt$norm_flag <- !is.na(dt$condition)
   if (length(index))
   {
     dt$condition[index] <- df$cond[match(dt$nct_id[index], df$nct_id)]
   }
-  dt$norm_flag <- !is.na(dt$condition)
   dt
 }
