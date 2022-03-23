@@ -59,7 +59,8 @@ tokens <- tokens[stri_length(tokens) > 2L]
 tokens <- setdiff(tokens, word_frequency$word[1:50])
 tokens <- paste0(tokens, "_")
 
-# 4. Load the Wikipedia dataset into R
+# 4. Load the Wikipedia dataset into R; note, you may need to download this
+# with curl or wget as I've had trouble with the file timing out in R
 dir.create("temp", showWarnings = FALSE)
 fout <- file.path("temp", "enwiki-20211201-all-titles.gz")
 if (!file.exists(fout))
@@ -104,22 +105,37 @@ gc()
 # disease should be matched to the most specific (in other words, longest)
 # page name that contains the condition description
 ng <- tokenize_ngrams(df$text, n_min = 1L, n = 7L)
-ngram_df <- tibble(
+ns <- tokenize_skip_ngrams(df$text, n_min = 2L, n = 2L, k = 1L)
+ngram_df <- bind_rows(tibble(
   doc_id = rep(df$doc_id, sapply(ng, length)),
   nct_id = rep(df$nct_id, sapply(ng, length)),
   ngram = unlist(ng),
-  nterm = stri_count(ngram, fixed = " ") + 1L
-)
+  nterm = stri_count(ngram, fixed = " ") + 1L,
+  type = 1
+),tibble(
+  doc_id = rep(df$doc_id, sapply(ns, length)),
+  nct_id = rep(df$nct_id, sapply(ns, length)),
+  ngram = unlist(ns),
+  nterm = stri_count(ngram, fixed = " ") + 1L,
+  type = 2
+))
+
+ngram_df <- ngram_df %>%
+  group_by(doc_id, nct_id, ngram, nterm) %>%
+  summarise(type = min(type)) %>%
+  ungroup() %>%
+  arrange(doc_id, nct_id, ngram)
 
 ngram_df <- ngram_df[!is.na(match(ngram_df$ngram, wiki$wiki_lower)),]
 ngram_df <- ngram_df %>%
-  group_by(doc_id, nct_id) %>%
-  filter(nterm == max(nterm)) %>%
-  ungroup() %>%
-  select(nct_id, ngram) %>%
+  # group_by(doc_id, nct_id) %>%
+  # filter(nterm == max(nterm)) %>%
+  # ungroup() %>%
+  select(nct_id, doc_id, ngram, type) %>%
   unique() %>%
   left_join(
-    filter(wiki, !duplicated(wiki_lower)),
+    wiki,
+    # filter(wiki, !duplicated(wiki_lower)),
     by = c("ngram" = "wiki_lower")
   )
 
@@ -151,6 +167,7 @@ for (j in seq_len(nrow(terms)))
 # 8. Parse the Wikipedia API results to get a short gloss based on the first
 # real paragraph of data.
 terms$gloss <- NA_character_
+categories <- vector("list", nrow(terms))
 for (j in seq_len(nrow(terms)))
 {
   url_str <- modify_url(url_base, query = list(page = terms$wiki_cased[j]))
@@ -162,10 +179,37 @@ for (j in seq_len(nrow(terms)))
     ptag <- xml_text(xml_find_all(xobj, ".//p"))
     ptag <- ptag[stri_length(ptag) > 25L]
     terms$gloss[j] <- ptag[1]
+    categories[[j]] <- map_chr(obj$parse$categories, ~ ..1$`*`)
   }
 }
+terms$categories <- categories
 
-# 9. Manual clean final index
+# 9. Automated cleaning of the results
+terms <- filter(terms, !is.na(gloss))
+terms <- filter(terms, !stri_detect(display, fixed = "<i>"))
+terms <- filter(terms, !map_lgl(categories, ~ "Disambiguation_pages" %in% ..1))
+terms <- terms %>%
+  mutate(temp = stri_trans_tolower(wiki_cased)) %>%
+  mutate(ncap = stri_count(wiki_cased, regex = "[A-Z]")) %>%
+  group_by(temp) %>%
+  filter(ncap == min(ncap)) %>%
+  ungroup() %>%
+  select(-temp, -ncap)
+
+allowed_terms <- df %>%
+  group_by(text) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  filter(n >= 2)
+
+terms <- terms %>%
+  mutate(text = stri_trans_tolower(display)) %>%
+  semi_join(allowed_terms, by = "text")
+
+#filter(terms, !map_lgl(categories, ~ "Wikipedia_medicine_articles_ready_to_translate" %in% ..1))
+
+# 10. Manual cleaning of the lookup index (mostly not needed anymore, but
+# keeping just in case)
 ts <- terms
 ts <- filter(ts, display != "Subject")
 ts <- filter(ts,
@@ -181,6 +225,23 @@ ts$ngram <- stri_trans_tolower(ts$wiki_cased)
 ts$ngram <- stri_replace_all(ts$ngram, ' ', fixed = '_')
 ts <- select(ts, wiki_cased, ngram, display, gloss)
 
-# 10. Save Results
-condition_lookup <- ts
+# 11. Add counts for deduping
+cnts <- ngram_df %>%
+  select(-type, -wiki_cased) %>%
+  mutate(nterm = stri_count(ngram, fixed = " ") + 1L) %>%
+  inner_join(ts, by = "ngram") %>%
+  group_by(doc_id, nct_id) %>%
+  filter(nterm == max(nterm)) %>%
+  ungroup() %>%
+  select(nct_id, doc_id, display) %>%
+  unique() %>%
+  group_by(display) %>%
+  summarise(ncount = n()) %>%
+  arrange(desc(ncount))
+
+ts <- ts %>%
+  left_join(cnts, by = "display")
+
+# 11. Save Results
+condition_lookup <- select(ts, -gloss)
 use_data(condition_lookup, overwrite = TRUE)
