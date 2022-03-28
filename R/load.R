@@ -153,7 +153,7 @@ ctgov_create_data <- function(con, verbose = TRUE) {
     DBI::dbGetQuery(
       con,
       sprintf(
-        paste(c("select outcome_id, param_type, param_value, p_value ",
+        paste(c("select outcome_id, param_type, param_value, p_value, non_inferiority_type ",
           "from %soutcome_analyses;"),
           collapse = ""),
         format_schema()
