@@ -153,7 +153,8 @@ ctgov_create_data <- function(con, verbose = TRUE) {
     DBI::dbGetQuery(
       con,
       sprintf(
-        paste(c("select outcome_id, param_type, param_value, p_value, non_inferiority_type ",
+        paste(c("select outcome_id, param_type, param_value, p_value, ",
+          "non_inferiority_type, p_value_modifier ",
           "from %soutcome_analyses;"),
           collapse = ""),
         format_schema()
@@ -254,8 +255,31 @@ ctgov_create_data <- function(con, verbose = TRUE) {
   tbl_outcome <- dplyr::inner_join(
     tbl_outcome, tbl_outcome_ana, by = c("id" = "outcome_id")
   )
-  tbl_outcome <- dplyr::select(tbl_outcome, -.data$id)
+  tbl_outcome <- dplyr::filter(tbl_outcome, .data$p_value_modifier != "=")
+  tbl_outcome <- dplyr::select(tbl_outcome, -.data$id, -.data$p_value_modifier)
   .volatiles$tbl$outcome <- tbl_outcome
+
+  # Create endpoint met dataset
+  cmsg(verbose, "[%s] CREATING ENDPOINT MET DATA\n", isotime())
+  tbl_epoint <- dplyr::group_by(tbl_outcome, .data$nct_id)
+  tbl_epoint <- filter(tbl_epoint, !is.na(.data$p_value))
+  tbl_epoint <- filter(tbl_epoint, .data$outcome_type == "Primary")
+  tbl_epoint <- dplyr::summarize(
+    tbl_epoint, prop_p_signif = mean(.data$p_value <= 0.05)
+  )
+  tbl_epoint <- dplyr::mutate(
+    tbl_epoint,
+    endpoint_met = dplyr::if_else(.data$prop_p_signif == 1, "Yes", "Maybe")
+  )
+  tbl_epoint <- dplyr::mutate(
+    tbl_epoint,
+    endpoint_met = dplyr::if_else(.data$prop_p_signif == 0, "No", .data$endpoint_met)
+  )
+  tbl_epoint <- dplyr::select(
+    tbl_epoint, .data$nct_id, .data$endpoint_met, .data$prop_p_signif
+  )
+  .volatiles$tbl$epoint <- tbl_epoint
+
 }
 
 #' Load sample dataset

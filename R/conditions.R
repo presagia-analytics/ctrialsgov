@@ -15,7 +15,7 @@
 #'
 #' @importFrom tokenizers tokenize_ngrams tokenize_skip_ngrams
 #' @importFrom stringi stri_split stri_count stri_trans_tolower
-#' @importFrom dplyr group_by inner_join filter select ungroup left_join
+#' @importFrom dplyr group_by inner_join filter select ungroup left_join .data
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @importFrom purrr map2
@@ -27,7 +27,7 @@ ctgov_norm_conditions <- function(data)
     nct_id = rep(data$nct_id, sapply(conds, length)),
     cond_id = unlist(sapply(sapply(conds, length), seq_len)),
     cond = unlist(conds),
-    text = stringi::stri_trans_tolower(cond)
+    text = stringi::stri_trans_tolower(.data$cond)
   )
 
   ng <- tokenizers::tokenize_ngrams(df$text, n_min = 1L, n = 7L)
@@ -41,12 +41,11 @@ ctgov_norm_conditions <- function(data)
     nct_id = rep(df$nct_id, sapply(na, length)),
     cond_id = rep(df$cond_id, sapply(na, length)),
     ngram = unlist(na),
-    nterm = stringi::stri_count(ngram, fixed = " ") + 1L,
+    nterm = stringi::stri_count(.data$ngram, fixed = " ") + 1L,
     type = unlist(nt)
   )
 
   # create a results table of the normalised data
-  data(condition_lookup)
   res <- dplyr::inner_join(ngram_df, condition_lookup, by = "ngram")
   res <- dplyr::group_by(res, .data$nct_id, .data$cond_id)
   res <- dplyr::filter(res, nterm == max(.data$nterm))

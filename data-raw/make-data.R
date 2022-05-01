@@ -23,7 +23,7 @@ remove_nonascii <- function(df)
 set.seed(1L)
 tbl_join_sample <- ctrialsgov:::.volatiles$tbl$join
 tbl_join_sample <- filter(tbl_join_sample, year(start_date) <= year(today()))
-tbl_join_sample <- slice_sample(tbl_join_sample, prop = 0.005)
+tbl_join_sample <- slice_sample(tbl_join_sample, prop = 0.001)
 tbl_join_sample <- arrange(tbl_join_sample, desc(start_date))
 tbl_join_sample <- remove_nonascii(tbl_join_sample)
 tbl_join_sample$interventions <- lapply(
@@ -68,11 +68,8 @@ print(object.size(tosave), units = "MB")
 cancer_studies <- tosave
 use_data(cancer_studies, overwrite = TRUE)
 
-# Save larger files (in multiple parts to get around GH limits)
+# Save larger files (upload as a release to avoid GH limits)
 ctgov_save_file("cache/tbl_data.Rds")
-
-
-
 
 
 
