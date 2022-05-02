@@ -51,7 +51,7 @@ ctgov_table_joined <- function()
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object of the results
 #' @export
-ctgov_table_joined <- function()
+ctgov_table_endpoint <- function()
 {
   assert_data_loaded()
   .volatiles$tbl$epoint
