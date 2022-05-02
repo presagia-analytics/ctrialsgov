@@ -5,26 +5,15 @@
 \title{Return Full Table of Trials}
 \usage{
 ctgov_table_joined()
-
-ctgov_table_joined()
 }
 \value{
-a tibble object of the results
-
 a tibble object of the results
 }
 \description{
 This function returns the currently loaded version of the joined data
 from the clinical trials database. This is the same as running the query
 function with no parameters, but included for consistency.
-
-This function returns the currently loaded version of a dataset showing the
-whether the reported data suggests that the study endpoint was either met or
-not met. This is an algorithmically generated field and is likey to contain
-errors.
 }
 \author{
-Taylor B. Arnold, \email{taylor.arnold@acm.org}
-
 Taylor B. Arnold, \email{taylor.arnold@acm.org}
 }

@@ -343,7 +343,7 @@ ctgov_load_cache <- function(force_download = FALSE) {
   # download the files if needed
   if ( (!file.exists(fp)) | force_download)
   {
-    download.file(base_url, fp)
+    download.file(base_url, fp, mode = "wb")
   }
 
   # combine the datasets and store in the volatiles object
