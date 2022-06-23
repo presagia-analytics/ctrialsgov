@@ -1,28 +1,109 @@
+#' Create DuckDB Connection Object
+#'
+#' This function creates a local DuckDB version of the full CTrialsGov database
+#' from the pipe-deliminated flat files. The resulting connection returned by
+#' the function can be queried directly or used with \code{ctgov_create_data}
+#' to create a more de-normalized version for use with the other functions
+#' contained in this package.
+#'
+#' The function requires downloading and unzipping the current database dump
+#' files found at \url{https://aact.ctti-clinicaltrials.org/pipe_files}. Given
+#' their large size (around 1.4GB as of June 2022), we find it preferrable to
+#' download the file directly through a browser or other command line tool
+#' rather than through the R native functions, which are not well-suited to
+#' to restarting a partial download.
+#'
+#' @param basedir  character giving the location that the flat-file pipe files
+#'                 have been unziped
+#' @param dbdir    Location for database files. Should be a path to an existing
+#'                 directory in the file system.
+#' @param verbose   logical flag; should progress messages be printed?;
+#'                  defaults to \code{TRUE}
+#'
+#' @author Taylor B. Arnold, \email{taylor@@dvlab.io}
+#' @return a database connection object
+#'
+#' @export
+#' @importFrom duckdb duckdb
+#' @importFrom readr read_delim
+#' @importFrom DBI dbConnect dbWriteTable
+ctgov_create_duckdb <- function(
+  basedir, dbdir = "ctgov_db_all", verbose = TRUE
+) {
+
+  tables <- c("active_storage_attachments", "active_storage_blobs",
+              "baseline_counts", "baseline_measurements", "brief_summaries",
+              "browse_conditions", "browse_interventions", "calculated_values",
+              "central_contacts", "conditions", "countries",
+              "design_group_interventions", "design_groups", "design_outcomes",
+              "designs", "detailed_descriptions", "documents",
+              "drop_withdrawals", "eligibilities", "facilities",
+              "facility_contacts", "facility_investigators", "file_records",
+              "id_information", "intervention_other_names", "interventions",
+              "ipd_information_types", "keywords", "links", "milestones",
+              "outcome_analyses", "outcome_analysis_groups",
+              "outcome_counts", "outcome_measurements", "outcomes",
+              "overall_officials", "participant_flows", "pending_results",
+              "provided_documents", "reported_event_totals", "reported_events",
+              "responsible_parties", "result_agreements", "result_contacts",
+              "result_groups", "retractions", "search_results", "sponsors",
+              "studies", "study_references")
+
+  db <- duckdb(dbdir)
+  conn <- dbConnect(db)
+
+  for (j in seq_along(tables))
+  suppressWarnings({
+    cmsg(verbose, "[%s] LOADING TABLE '%s'\n", isotime(), tables[j])
+    z <- read_delim(
+      file.path("pipedata", paste0(tables[j], ".txt")),
+      delim = "|",
+      show_col_types = FALSE,
+      guess_max = 1e4,
+      progress = FALSE
+    )
+    dbWriteTable(conn = conn, name = tables[j], value = z, overwrite = TRUE)
+  })
+
+  return(conn)
+}
+
 #' Initialize the connection
 #'
 #' This function must be run prior to other functions in the package. It
 #' creates a parsed and cached version of the clinical trials dataset in
 #' memory in R. This makes other function calls relatively efficient. other
 #'
-#' @param con       an DBI connection object to the database
-#' @param verbose   logical flag; should progress messages be printed?;
-#'                  defaults to \code{TRUE}
+#' @param con      an DBI connection object to the database
+#' @param dbdir    Location for the output database files. Should be a path to
+#'                 an existing directory in the file system. By default will
+#'                 place files in the location where the package is installed.
+#' @param verbose  logical flag; should progress messages be printed?;
+#'                 defaults to \code{TRUE}
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return does not return any value; used only for side effects
 #'
 #' @export
 #' @importFrom rlang .data
-#' @importFrom DBI dbGetQuery
+#' @importFrom DBI dbGetQuery dbConnect dbWriteTable
+#' @importFrom duckdb duckdb
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr filter if_else transmute group_by ungroup left_join nest_by desc arrange select inner_join
 #' @importFrom stringi stri_trim stri_replace_all stri_sub stri_paste
 #' @importFrom lubridate today
-ctgov_create_data <- function(con, verbose = TRUE) {
+ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
   assert(is.logical(verbose) & length(verbose) == 1L)
 
-  # Save the connection in case needed later
-  .volatiles$con <- con
+  # If dbdir is missing save the dataset
+  if (is.null(dbdir))
+  {
+    dbdir <- file.path(system.file("extdata", package = "ctrialsgov"), "ctdb")
+  }
+
+  # create a connection to the output dataset
+  db <- duckdb::duckdb(dbdir)
+  .volatiles$con <- dbConnect(db)
 
   # Grab the data
   cmsg(verbose, "[%s] LOADING DATA TABLES\n", isotime())
@@ -217,14 +298,6 @@ ctgov_create_data <- function(con, verbose = TRUE) {
     conditions = stringi::stri_paste(.data$name, collapse = "|")
   )
 
-  tbl_inter_nest <- dplyr::nest_by(
-    tbl_inter, .data$nct_id, .key = "interventions"
-  )
-
-  tbl_outcm_nest <- dplyr::nest_by(
-    tbl_outcm, .data$nct_id, .key = "outcomes"
-  )
-
   # Join into combined tables
   cmsg(verbose, "[%s] STORE COMBINED DATA\n", isotime())
 
@@ -232,13 +305,19 @@ ctgov_create_data <- function(con, verbose = TRUE) {
   tbl_join <- dplyr::left_join(tbl_join, tbl_eligb, by = "nct_id")
   tbl_join <- dplyr::left_join(tbl_join, tbl_spons, by = "nct_id")
   tbl_join <- dplyr::left_join(tbl_join, tbl_conds, by = "nct_id")
-  tbl_join <- dplyr::left_join(tbl_join, tbl_inter_nest, by = "nct_id")
-  tbl_join <- dplyr::left_join(tbl_join, tbl_outcm_nest, by = "nct_id")
   tbl_join <- dplyr::arrange(tbl_join, dplyr::desc(.data$start_date))
 
   # Save the main data in memory
   cmsg(verbose, "[%s] LOADING %d ROWS OF DATA\n", isotime(), nrow(tbl_join))
-  .volatiles$tbl$join <- tbl_join
+  dbWriteTable(
+    conn = .volatiles$con, name = "join", value = tbl_join, overwrite = TRUE
+  )
+  dbWriteTable(
+    conn = .volatiles$con, name = "inter", value = tbl_inter, overwrite = TRUE
+  )
+  dbWriteTable(
+    conn = .volatiles$con, name = "outcm", value = tbl_outcm, overwrite = TRUE
+  )
   make_categories()
 
   # Create publications data
@@ -248,7 +327,9 @@ ctgov_create_data <- function(con, verbose = TRUE) {
       tbl_refs$citation, regex = "doi: [^ ]+"
     ), 6L, -1L
   )
-  .volatiles$tbl$refs <- tbl_refs
+  dbWriteTable(
+    conn = .volatiles$con, name = "refs", value = tbl_refs, overwrite = TRUE
+  )
 
   # Create outcome data
   cmsg(verbose, "[%s] CREATING OUTCOME DATA\n", isotime())
@@ -257,7 +338,9 @@ ctgov_create_data <- function(con, verbose = TRUE) {
   )
   tbl_outcome <- dplyr::filter(tbl_outcome, .data$p_value_modifier != "=")
   tbl_outcome <- dplyr::select(tbl_outcome, -.data$id, -.data$p_value_modifier)
-  .volatiles$tbl$outcome <- tbl_outcome
+  dbWriteTable(
+    conn = .volatiles$con, name = "outcome", value = tbl_outcome, overwrite = TRUE
+  )
 
   # Create endpoint met dataset
   cmsg(verbose, "[%s] CREATING ENDPOINT MET DATA\n", isotime())
@@ -278,8 +361,11 @@ ctgov_create_data <- function(con, verbose = TRUE) {
   tbl_epoint <- dplyr::select(
     tbl_epoint, .data$nct_id, .data$endpoint_met, .data$prop_p_signif
   )
-  .volatiles$tbl$epoint <- tbl_epoint
+  dbWriteTable(
+    conn = .volatiles$con, name = "epoint", value = tbl_epoint, overwrite = TRUE
+  )
 
+  invisible(NULL)
 }
 
 #' Load sample dataset

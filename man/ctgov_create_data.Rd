@@ -4,10 +4,14 @@
 \alias{ctgov_create_data}
 \title{Initialize the connection}
 \usage{
-ctgov_create_data(con, verbose = TRUE)
+ctgov_create_data(con, dbdir = NULL, verbose = TRUE)
 }
 \arguments{
 \item{con}{an DBI connection object to the database}
+
+\item{dbdir}{Location for the output database files. Should be a path to
+an existing directory in the file system. By default will
+place files in the location where the package is installed.}
 
 \item{verbose}{logical flag; should progress messages be printed?;
 defaults to \code{TRUE}}

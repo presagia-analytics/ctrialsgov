@@ -136,6 +136,8 @@
 #' @return a tibble object queried from the loaded database
 #'
 #' @importFrom purrr map_chr
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
 #' @export
 ctgov_query <- function(
   data = NULL,
@@ -242,7 +244,7 @@ ctgov_query <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- .volatiles$tbl$join
+    z <- as_tibble(dbReadTable(.volatiles$con, name = "join"))
   } else {
     z <- data
   }

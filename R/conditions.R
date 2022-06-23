@@ -46,17 +46,17 @@ ctgov_norm_conditions <- function(data)
   )
 
   # create a results table of the normalised data
-  res <- dplyr::inner_join(ngram_df, condition_lookup, by = "ngram")
+  res <- dplyr::inner_join(ngram_df, .data$condition_lookup, by = "ngram")
   res <- dplyr::group_by(res, .data$nct_id, .data$cond_id)
-  res <- dplyr::filter(res, nterm == max(.data$nterm))
-  res <- dplyr::filter(res, type == min(.data$type))
-  res <- dplyr::filter(res, ncount == max(.data$ncount))
+  res <- dplyr::filter(res, .data$nterm == max(.data$nterm))
+  res <- dplyr::filter(res, .data$type == min(.data$type))
+  res <- dplyr::filter(res, .data$ncount == max(.data$ncount))
   res <- dplyr::ungroup(res)
   res <- dplyr::select(res, .data$nct_id, condition = .data$display)
   res <- unique(res)
 
   # combine with the original data
-  dt <- dplyr::select(data, nct_id)
+  dt <- dplyr::select(data, .data$nct_id)
   dt <- dplyr::left_join(dt, res, by = "nct_id")
   index <- which(is.na(dt$condition))
   dt$norm_flag <- !is.na(dt$condition)

@@ -2,10 +2,18 @@
 % Please edit documentation in R/plot.R
 \name{ctgov_to_plotly.ctgov_bar_plot}
 \alias{ctgov_to_plotly.ctgov_bar_plot}
-\title{importFrom plotly ggplotly layout}
+\title{Convert a ctrialsgov Visualization to Plotly}
 \usage{
 \method{ctgov_to_plotly}{ctgov_bar_plot}(p, ...)
 }
+\arguments{
+\item{p}{the plot returned by `ctgov_plot_timeline()`.}
+
+\item{...}{currently not used.}
+}
+\value{
+a Plotly object
+}
 \description{
-importFrom plotly ggplotly layout
+Convert a ctrialsgov Visualization to Plotly
 }

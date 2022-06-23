@@ -6,10 +6,12 @@
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object of the results
 #' @export
+#'
+#' @importFrom DBI dbReadTable
 ctgov_table_references <- function()
 {
   assert_data_loaded()
-  .volatiles$tbl$refs
+  dbReadTable(.volatiles$con, name = "refs")
 }
 
 #' Return Full Table of Outcomes
@@ -20,10 +22,12 @@ ctgov_table_references <- function()
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object of the results
 #' @export
+#'
+#' @importFrom DBI dbReadTable
 ctgov_table_outcomes <- function()
 {
   assert_data_loaded()
-  .volatiles$tbl$outcome
+  dbReadTable(.volatiles$con, name = "outcome")
 }
 
 #' Return Full Table of Trials
@@ -35,10 +39,12 @@ ctgov_table_outcomes <- function()
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object of the results
 #' @export
+#'
+#' @importFrom DBI dbReadTable
 ctgov_table_joined <- function()
 {
   assert_data_loaded()
-  .volatiles$tbl$join
+  dbReadTable(.volatiles$con, name = "join")
 }
 
 #' Return Full Table of Endpoint results
@@ -51,8 +57,10 @@ ctgov_table_joined <- function()
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object of the results
 #' @export
+#'
+#' @importFrom DBI dbReadTable
 ctgov_table_endpoint <- function()
 {
   assert_data_loaded()
-  .volatiles$tbl$epoint
+  dbReadTable(.volatiles$con, name = "epoint")
 }

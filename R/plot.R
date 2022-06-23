@@ -108,7 +108,15 @@ ctgov_to_plotly.gg <- function(p, ...) {
   ggplotly(p, ...)
 }
 
-#' importFrom plotly ggplotly layout
+#' @title Convert a ctrialsgov Visualization to Plotly
+#'
+#' @param p the plot returned by `ctgov_plot_timeline()`.
+#' @param ... currently not used.
+#' @return a Plotly object
+#'
+#' @importFrom plotly ggplotly layout
+#' @importFrom htmlwidgets onRender
+#' @export
 ctgov_to_plotly.ctgov_bar_plot <- function(p, ...) {
   class(p) <- class(p)[-1]
   pp <- ggplotly(p, tooltip = "tooltip")

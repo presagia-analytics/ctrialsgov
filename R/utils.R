@@ -9,7 +9,7 @@ assert <- function(statement, msg="")
 assert_data_loaded <- function()
 {
   assert(
-    !is.null(.volatiles$tbl$join),
+    !is.null(.volatiles$con),
     paste0(c(
       "Before running a query you must load the clinical trials data into ",
       "R using one of these functions: ctgov_create_data, ctgov_load_sample, ",
@@ -76,22 +76,24 @@ get_lvl <- function(v) {
   v
 }
 
+#' @importFrom DBI dbReadTable
 make_categories <- function()
 {
   assert_data_loaded()
 
+  join <- dbReadTable(.volatiles$con, name = "join")
   .volatiles$ol <- list(
-    study_type = get_lvl(.volatiles$tbl$join$study_type),
-    allocation = get_lvl(.volatiles$tbl$join$allocation),
-    intervention_model = get_lvl(.volatiles$tbl$join$intervention_model),
-    observational_model = get_lvl(.volatiles$tbl$join$observational_model),
-    primary_purpose = get_lvl(.volatiles$tbl$join$primary_purpose),
-    time_perspective = get_lvl(.volatiles$tbl$join$time_perspective),
-    masking_description = get_lvl(.volatiles$tbl$join$masking_description),
-    sampling_method = get_lvl(.volatiles$tbl$join$sampling_method),
-    phase = get_lvl(.volatiles$tbl$join$phase),
-    gender = get_lvl(.volatiles$tbl$join$gender),
-    sponsor_type = get_lvl(.volatiles$tbl$join$sponsor_type)
+    study_type = get_lvl(join$study_type),
+    allocation = get_lvl(join$allocation),
+    intervention_model = get_lvl(join$intervention_model),
+    observational_model = get_lvl(join$observational_model),
+    primary_purpose = get_lvl(join$primary_purpose),
+    time_perspective = get_lvl(join$time_perspective),
+    masking_description = get_lvl(join$masking_description),
+    sampling_method = get_lvl(join$sampling_method),
+    phase = get_lvl(join$phase),
+    gender = get_lvl(join$gender),
+    sponsor_type = get_lvl(join$sponsor_type)
   )
 
 }
