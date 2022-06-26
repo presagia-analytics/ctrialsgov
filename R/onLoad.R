@@ -25,3 +25,6 @@
   gender = c("All", "Female", "Male"),
   sponsor_type = c("Industry", "NIH", "U.S. Fed", "Other")
 )
+.volatiles$tbl_names <- c(
+  "design", "epoint", "inter", "join", "outcome", "refs"
+)

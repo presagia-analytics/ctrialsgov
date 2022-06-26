@@ -72,7 +72,7 @@ ctgov_create_duckdb <- function(
 #'
 #' This function must be run prior to other functions in the package. It
 #' creates a parsed and cached version of the clinical trials dataset in
-#' memory in R. This makes other function calls relatively efficient. other
+#' memory in R. This makes other function calls relatively efficient.
 #'
 #' @param con      an DBI connection object to the database
 #' @param dbdir    Location for the output database files. Should be a path to
@@ -316,7 +316,7 @@ ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
     conn = .volatiles$con, name = "inter", value = tbl_inter, overwrite = TRUE
   )
   dbWriteTable(
-    conn = .volatiles$con, name = "outcm", value = tbl_outcm, overwrite = TRUE
+    conn = .volatiles$con, name = "design", value = tbl_outcm, overwrite = TRUE
   )
   make_categories()
 
@@ -378,20 +378,42 @@ ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
 #' @param cancer_studies     logical; should we load a currated list of cancer
 #'                           clinical trials
 #'
+#' @param dbdir    Location for the output database files. Should be a path to
+#'                 an existing directory in the file system. By default will
+#'                 place files in the location where the package is installed.
+#'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return does not return any value; used only for side effects
 #'
 #' @export
 #' @importFrom utils data
-ctgov_load_sample <- function(cancer_studies = FALSE)
+ctgov_load_sample <- function(cancer_studies = FALSE, dbdir = NULL)
 {
+  # If dbdir is missing save the dataset in the package directory
+  if (is.null(dbdir))
+  {
+    dbdir <- file.path(system.file("extdata", package = "ctrialsgov"), "ctdb")
+  }
+
+  # create a connection to the output dataset
+  db <- duckdb::duckdb(dbdir)
+  .volatiles$con <- dbConnect(db)
+
   if (!cancer_studies)
   {
     data("tbl_join_sample", package = "ctrialsgov", envir = (en <- new.env()))
-    .volatiles$tbl <- en$tbl_join_sample
+    z <- en$tbl_join_sample
   } else {
     data("cancer_studies", package = "ctrialsgov", envir = (en <- new.env()))
-    .volatiles$tbl <- en$cancer_studies
+    z <- en$cancer_studies
+  }
+
+  # load the tables
+  for (tbl in .volatiles$tbl_names)
+  {
+    dbWriteTable(
+      conn = .volatiles$con, name = tbl, value = z[[tbl]], overwrite = TRUE
+    )
   }
 
   make_categories()
@@ -449,13 +471,22 @@ ctgov_load_cache <- function(force_download = FALSE) {
 #' @return does not return any value; used only for side effects
 #'
 #' @export
+#' @importFrom DBI dbReadTable
+#' @importFrom tibble as_tibble
 ctgov_save_file <- function(file) {
   assert(is.character(file) & length(file) == 1L)
+  assert_data_loaded()
 
-  saveRDS(.volatiles$tbl, file)
+  z <- list()
+  for (tbl in .volatiles$tbl_names)
+  {
+    z[[tbl]] <- as_tibble(dbReadTable(.volatiles$con, name = tbl))
+  }
+
+  saveRDS(z, file)
 }
 
-#' Load Database from File
+#' Load Database from RDS File
 #'
 #' Loads a version of the current active database as a binary R
 #' file.
@@ -463,13 +494,59 @@ ctgov_save_file <- function(file) {
 #' @param file      a character string naming a file; should have
 #'                  the extension 'rds'
 #'
+#' @param dbdir    Location for the output database files. Should be a path to
+#'                 an existing directory in the file system. By default will
+#'                 place files in the location where the package is installed.
+#'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return does not return any value; used only for side effects
 #'
 #' @export
-ctgov_load_file <- function(file) {
+#' @importFrom DBI dbConnect dbWriteTable
+#' @importFrom duckdb duckdb
+ctgov_load_rds_file <- function(file, dbdir = NULL) {
   assert(is.character(file) & length(file) == 1L)
 
-  .volatiles$tbl <- readRDS(file)
+  # If dbdir is missing save the dataset
+  if (is.null(dbdir))
+  {
+    dbdir <- file.path(system.file("extdata", package = "ctrialsgov"), "ctdb")
+  }
+
+  # create a connection to the output dataset
+  db <- duckdb::duckdb(dbdir)
+  .volatiles$con <- dbConnect(db)
+
+  # load the tables
+  z <- readRDS(file)
+  for (tbl in .volatiles$tbl_names)
+  {
+    dbWriteTable(
+      conn = .volatiles$con, name = tbl, value = z[[tbl]], overwrite = TRUE
+    )
+  }
+
+  make_categories()
+}
+
+#' Load Database from DuckDB File
+#'
+#' Loads a version of the current active database from an existing DuckDB file.
+#'
+#' @param dbdir   a character string naming the location of the DuckDB file
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return does not return any value; used only for side effects
+#'
+#' @export
+#' @importFrom DBI dbConnect dbWriteTable
+#' @importFrom duckdb duckdb
+ctgov_load_duckdb_file <- function(dbdir = NULL) {
+
+  # create a connection to the output dataset
+  db <- duckdb::duckdb(dbdir)
+  .volatiles$con <- dbConnect(db)
+
+  # create categorical levels for the function
   make_categories()
 }

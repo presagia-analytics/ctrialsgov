@@ -3,7 +3,7 @@
 #' This function selects a subset of the clinical trials data by using a
 #' a variety of different search parameters. These include free text search
 #' keywords, range queries for the continuous variables, and exact matches for
-#' categorical fields. The function \code{ctgov_query_terms} shows the
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
 #' categorical levels for the latter. The function will either take the entire
 #' dataset loaded into the package environment or a previously queried input.
 #'
@@ -39,14 +39,6 @@
 #'
 #' @param intervention_desc_kw    character vector of keywords to search in the
 #'                                intervention description field. Set to
-#'                                \code{NULL} to avoid searching this field.
-#'
-#' @param outcome_kw              character vector of keywords to search in the
-#'                                outcome measures field. Set to
-#'                                \code{NULL} to avoid searching this field.
-#'
-#' @param outcome_desc_kw         character vector of keywords to search in the
-#'                                outcome description field. Set to
 #'                                \code{NULL} to avoid searching this field.
 #'
 #' @param conditions_kw           character vector of keywords to search in the
@@ -135,7 +127,6 @@
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object queried from the loaded database
 #'
-#' @importFrom purrr map_chr
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
 #' @export
@@ -148,8 +139,6 @@ ctgov_query <- function(
   criteria_kw = NULL,
   intervention_kw = NULL,
   intervention_desc_kw = NULL,
-  outcome_kw = NULL,
-  outcome_desc_kw = NULL,
   conditions_kw = NULL,
   population_kw = NULL,
   date_range = NULL,
@@ -178,8 +167,6 @@ ctgov_query <- function(
   assert(is.null(official_title_kw) | is.character(official_title_kw))
   assert(is.null(intervention_kw) | is.character(intervention_kw))
   assert(is.null(intervention_desc_kw) | is.character(intervention_desc_kw))
-  assert(is.null(outcome_kw) | is.character(outcome_kw))
-  assert(is.null(outcome_desc_kw) | is.character(outcome_desc_kw))
   assert(is.null(conditions_kw) | is.character(conditions_kw))
   assert(is.null(population_kw) | is.character(population_kw))
 
@@ -355,14 +342,6 @@ ctgov_query <- function(
     ind <- search_kw(z$criteria, criteria_kw, ignore_case, match_all)
     z <- z[ind,]
   }
-  if (!is.null(intervention_kw))
-  {
-    inames <- purrr::map_chr(
-      z$interventions, function(v) paste0(v$name, collapse = " ")
-    )
-    ind <- search_kw(inames, intervention_kw, ignore_case, match_all)
-    z <- z[ind,]
-  }
   if (!is.null(intervention_desc_kw))
   {
     ind <- search_kw(
@@ -371,22 +350,6 @@ ctgov_query <- function(
       ignore_case,
       match_all
     )
-    z <- z[ind,]
-  }
-  if (!is.null(outcome_kw))
-  {
-    inames <- purrr::map_chr(
-      z$outcomes, function(v) paste0(v$measure, collapse = " ")
-    )
-    ind <- search_kw(inames, outcome_kw, ignore_case, match_all)
-    z <- z[ind,]
-  }
-  if (!is.null(outcome_desc_kw))
-  {
-    inames <- purrr::map_chr(
-      z$outcomes, function(v) paste0(v$description, collapse = " ")
-    )
-    ind <- search_kw(inames, outcome_desc_kw, ignore_case, match_all)
     z <- z[ind,]
   }
   if (!is.null(conditions_kw))
@@ -404,6 +367,302 @@ ctgov_query <- function(
   return(z)
 }
 
+
+#' Query design data from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param design_kw               character vector of keywords to search in the
+#'                                outcome measures field. Set to
+#'                                \code{NULL} to avoid searching this field.
+#'
+#' @param design_desc_kw          character vector of keywords to search in the
+#'                                outcome description field. Set to
+#'                                \code{NULL} to avoid searching this field.
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @export
+ctgov_query_design <- function(
+  data = NULL,
+  design_kw = NULL,
+  design_desc_kw = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE
+) {
+  ############################################################################
+  # check query input types
+  assert(is.null(design_kw) | is.character(design_kw))
+  assert(is.null(design_desc_kw) | is.character(design_desc_kw))
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- as_tibble(dbReadTable(.volatiles$con, name = "design"))
+  } else {
+    z <- data
+  }
+
+  ############################################################################
+  # do the keyword searches
+  if (!is.null(design_kw))
+  {
+    ind <- search_kw(z$measure, design_kw, ignore_case, match_all)
+    z <- z[ind,]
+  }
+  if (!is.null(design_desc_kw))
+  {
+    ind <- search_kw(z$description, design_desc_kw, ignore_case, match_all)
+    z <- z[ind,]
+  }
+
+  # return the results
+  return(z)
+}
+
+
+#' Query intervention data from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param intervention_kw         character vector of keywords to search in the
+#'                                intervention names field. Set to
+#'                                \code{NULL} to avoid searching this field.
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @export
+ctgov_query_intervention <- function(
+  data = NULL,
+  intervention_kw = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE
+) {
+  ############################################################################
+  # check query input types
+  assert(is.null(intervention_kw) | is.character(intervention_kw))
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- as_tibble(dbReadTable(.volatiles$con, name = "inter"))
+  } else {
+    z <- data
+  }
+
+  ############################################################################
+  # do the keyword searches
+  if (!is.null(intervention_kw))
+  {
+    ind <- search_kw(z$name, intervention_kw, ignore_case, match_all)
+    z <- z[ind,]
+  }
+
+  # return the results
+  return(z)
+}
+
+
+#' Query references table from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @export
+ctgov_query_references <- function(
+  data = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE
+) {
+  ############################################################################
+  # check query input types
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- as_tibble(dbReadTable(.volatiles$con, name = "refs"))
+  } else {
+    z <- data
+  }
+
+  ############################################################################
+  # do the keyword searches
+
+  # return the results
+  return(z)
+}
+
+
+#' Query outcome table from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @export
+ctgov_query_outcome <- function(
+  data = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE
+) {
+  ############################################################################
+  # check query input types
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- as_tibble(dbReadTable(.volatiles$con, name = "outcome"))
+  } else {
+    z <- data
+  }
+
+  ############################################################################
+  # do the keyword searches
+
+  # return the results
+  return(z)
+}
+
+
+#' Query endpoint table from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @export
+ctgov_query_endpoint <- function(
+  data = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE
+) {
+  ############################################################################
+  # check query input types
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- as_tibble(dbReadTable(.volatiles$con, name = "epoint"))
+  } else {
+    z <- data
+  }
+
+  ############################################################################
+  # do the keyword searches
+
+  # return the results
+  return(z)
+}
+
+
 #' Query the ClinicalTrials.gov dataset
 #'
 #' Returns a list showing the available category levels for querying the data
@@ -412,7 +671,7 @@ ctgov_query <- function(
 #' @return a named list of allowed categorical values for the query
 #'
 #' @export
-ctgov_query_terms <- function()
+ctgov_get_query_terms <- function()
 {
   return(.volatiles$ol)
 }
