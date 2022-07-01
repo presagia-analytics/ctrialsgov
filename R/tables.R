@@ -40,3 +40,19 @@ ctgov_table_joined <- function()
   assert_data_loaded()
   .volatiles$tbl$join
 }
+
+#' Return Full Table of Endpoint results
+#'
+#' This function returns the currently loaded version of a dataset showing the
+#' whether the reported data suggests that the study endpoint was either met or
+#' not met. This is an algorithmically generated field and is likey to contain
+#' errors.
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object of the results
+#' @export
+ctgov_table_endpoint <- function()
+{
+  assert_data_loaded()
+  .volatiles$tbl$epoint
+}
