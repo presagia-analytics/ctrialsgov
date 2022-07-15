@@ -56,7 +56,7 @@ ctgov_create_duckdb <- function(
   suppressWarnings({
     cmsg(verbose, "[%s] LOADING TABLE '%s'\n", isotime(), tables[j])
     z <- read_delim(
-      file.path("pipedata", paste0(tables[j], ".txt")),
+      file.path(basedir, paste0(tables[j], ".txt")),
       delim = "|",
       show_col_types = FALSE,
       guess_max = 1e4,
