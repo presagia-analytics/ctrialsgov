@@ -104,6 +104,7 @@ ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
   # create a connection to the output dataset
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db)
+  .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
 
   # Grab the data
   cmsg(verbose, "[%s] LOADING DATA TABLES\n", isotime())
@@ -398,6 +399,7 @@ ctgov_load_sample <- function(cancer_studies = FALSE, dbdir = NULL)
   # create a connection to the output dataset
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db)
+  .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
 
   if (!cancer_studies)
   {
@@ -516,6 +518,7 @@ ctgov_load_rds_file <- function(file, dbdir = NULL) {
   # create a connection to the output dataset
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db)
+  .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
 
   # load the tables
   z <- readRDS(file)
@@ -545,7 +548,8 @@ ctgov_load_duckdb_file <- function(dbdir = NULL) {
 
   # create a connection to the output dataset
   db <- duckdb::duckdb(dbdir)
-  .volatiles$con <- dbConnect(db)
+  .volatiles$con <- dbConnect(db, read_only = TRUE)
+  .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
 
   # create categorical levels for the function
   make_categories()

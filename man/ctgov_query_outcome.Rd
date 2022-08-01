@@ -4,7 +4,12 @@
 \alias{ctgov_query_outcome}
 \title{Query outcome table from the ClinicalTrials.gov dataset}
 \usage{
-ctgov_query_outcome(data = NULL, ignore_case = TRUE, match_all = FALSE)
+ctgov_query_outcome(
+  data = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE,
+  max_rows = NULL
+)
 }
 \arguments{
 \item{data}{a dataset to search over; set to \code{NULL}
@@ -16,6 +21,9 @@ capitalization. The default is \code{TRUE}.}
 
 \item{match_all}{logical. Should the results required matching
 all the keywords? The default is \code{FALSE}.}
+
+\item{max_rows}{integer. The maximum number of rows to return;
+The default \code{NULL} returns all rows.}
 }
 \value{
 a tibble object queried from the loaded database

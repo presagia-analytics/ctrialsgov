@@ -2,7 +2,7 @@
 % Please edit documentation in R/query.R
 \name{ctgov_get_query_terms}
 \alias{ctgov_get_query_terms}
-\title{Query the ClinicalTrials.gov dataset}
+\title{Query terms for the ClinicalTrials.gov dataset}
 \usage{
 ctgov_get_query_terms()
 }

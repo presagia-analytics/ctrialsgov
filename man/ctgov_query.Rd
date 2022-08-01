@@ -31,7 +31,8 @@ ctgov_query(
   gender = NULL,
   sponsor_type = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 )
 }
 \arguments{
@@ -149,6 +150,9 @@ capitalization. The default is \code{TRUE}.}
 
 \item{match_all}{logical. Should the results required matching
 all the keywords? The default is \code{FALSE}.}
+
+\item{max_rows}{integer. The maximum number of rows to return;
+The default \code{NULL} returns all rows.}
 }
 \value{
 a tibble object queried from the loaded database

@@ -123,6 +123,9 @@
 #' @param match_all               logical. Should the results required matching
 #'                                all the keywords? The default is \code{FALSE}.
 #'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object queried from the loaded database
@@ -131,6 +134,7 @@
 #' @importFrom DBI dbReadTable
 #' @importFrom rlang .data .env
 #' @importFrom dplyr filter collect tbl
+#' @importFrom utils head
 #' @export
 ctgov_query <- function(
   data = NULL,
@@ -159,7 +163,8 @@ ctgov_query <- function(
   gender = NULL,
   sponsor_type = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 ) {
 
   ############################################################################
@@ -234,9 +239,10 @@ ctgov_query <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- tbl(.volatiles$con, "join")
+    z <- dplyr::tbl(.volatiles$con, "join")
   } else {
-    z <- data
+    duckdb::duckdb_register(.volatiles$memory, "join", data)
+    z <- dplyr::tbl(.volatiles$memory, "join")
   }
 
   ############################################################################
@@ -382,6 +388,13 @@ ctgov_query <- function(
     z <- query_kwds(z, population_kw, "population", ignore_case, match_all)
   }
 
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
+
   # return the results
   return(dplyr::collect(z))
 }
@@ -415,20 +428,25 @@ ctgov_query <- function(
 #' @param match_all               logical. Should the results required matching
 #'                                all the keywords? The default is \code{FALSE}.
 #'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object queried from the loaded database
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
-#' @importFrom dplyr collect
+#' @importFrom dplyr collect tbl
+#' @importFrom utils head
 #' @export
 ctgov_query_design <- function(
   data = NULL,
   design_kw = NULL,
   design_desc_kw = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 ) {
   ############################################################################
   # check query input types
@@ -440,9 +458,10 @@ ctgov_query_design <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- tbl(.volatiles$con, "design")
+    z <- dplyr::tbl(.volatiles$con, "design")
   } else {
-    z <- data
+    duckdb::duckdb_register(.volatiles$memory, "design", data)
+    z <- dplyr::tbl(.volatiles$memory, "design")
   }
 
   ############################################################################
@@ -454,6 +473,13 @@ ctgov_query_design <- function(
   if (!is.null(design_desc_kw))
   {
     z <- query_kwds(z, design_desc_kw, "description", ignore_case, match_all)
+  }
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
   }
 
   # return the results
@@ -485,19 +511,24 @@ ctgov_query_design <- function(
 #' @param match_all               logical. Should the results required matching
 #'                                all the keywords? The default is \code{FALSE}.
 #'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object queried from the loaded database
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
-#' @importFrom dplyr collect
+#' @importFrom dplyr collect tbl
+#' @importFrom utils head
 #' @export
 ctgov_query_intervention <- function(
   data = NULL,
   intervention_kw = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 ) {
   ############################################################################
   # check query input types
@@ -508,9 +539,10 @@ ctgov_query_intervention <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- tbl(.volatiles$con, "inter")
+    z <- dplyr::tbl(.volatiles$con, "inter")
   } else {
-    z <- data
+    duckdb::duckdb_register(.volatiles$memory, "inter", data)
+    z <- dplyr::tbl(.volatiles$memory, "inter")
   }
 
   ############################################################################
@@ -518,6 +550,13 @@ ctgov_query_intervention <- function(
   if (!is.null(intervention_kw))
   {
     z <- query_kwds(z, intervention_kw, "name", ignore_case, match_all)
+  }
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
   }
 
   # return the results
@@ -545,17 +584,23 @@ ctgov_query_intervention <- function(
 #' @param match_all               logical. Should the results required matching
 #'                                all the keywords? The default is \code{FALSE}.
 #'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
+#'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object queried from the loaded database
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
-#' @importFrom dplyr collect
+#' @importFrom dplyr collect tbl
+#' @importFrom utils head
 #' @export
 ctgov_query_references <- function(
   data = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 ) {
   ############################################################################
   # check query input types
@@ -565,13 +610,21 @@ ctgov_query_references <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- tbl(.volatiles$con, "refs")
+    z <- dplyr::tbl(.volatiles$con, "refs")
   } else {
-    z <- data
+    duckdb::duckdb_register(.volatiles$memory, "refs", data)
+    z <- dplyr::tbl(.volatiles$memory, "refs")
   }
 
   ############################################################################
   # do the keyword searches
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
 
   # return the results
   return(dplyr::collect(z))
@@ -597,18 +650,22 @@ ctgov_query_references <- function(
 #'
 #' @param match_all               logical. Should the results required matching
 #'                                all the keywords? The default is \code{FALSE}.
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object queried from the loaded database
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
-#' @importFrom dplyr collect
+#' @importFrom dplyr collect tbl
+#' @importFrom utils head
 #' @export
 ctgov_query_outcome <- function(
   data = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 ) {
   ############################################################################
   # check query input types
@@ -618,13 +675,21 @@ ctgov_query_outcome <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- tbl(.volatiles$con, "outcome")
+    z <- dplyr::tbl(.volatiles$con, "outcome")
   } else {
-    z <- data
+    duckdb::duckdb_register(.volatiles$memory, "outcome", data)
+    z <- dplyr::tbl(.volatiles$memory, "outcome")
   }
 
   ############################################################################
   # do the keyword searches
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
 
   # return the results
   return(dplyr::collect(z))
@@ -651,17 +716,23 @@ ctgov_query_outcome <- function(
 #' @param match_all               logical. Should the results required matching
 #'                                all the keywords? The default is \code{FALSE}.
 #'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
+#'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object queried from the loaded database
 #'
 #' @importFrom tibble as_tibble
-#' @importFrom dplyr collect
+#' @importFrom dplyr collect tbl
 #' @importFrom DBI dbReadTable
+#' @importFrom utils head
 #' @export
 ctgov_query_endpoint <- function(
   data = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 ) {
   ############################################################################
   # check query input types
@@ -671,20 +742,70 @@ ctgov_query_endpoint <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- tbl(.volatiles$con, "epoint")
+    z <- dplyr::tbl(.volatiles$con, "epoint")
   } else {
-    z <- data
+    duckdb::duckdb_register(.volatiles$memory, "epoint", data)
+    z <- dplyr::tbl(.volatiles$memory, "epoint")
   }
 
   ############################################################################
   # do the keyword searches
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
 
   # return the results
   return(dplyr::collect(z))
 }
 
 
-#' Query the ClinicalTrials.gov dataset
+#' Wrapper function for the API to return all tables
+#'
+#' Passes arguments to the \code{ctgov_query} function, but returns the result
+#' as a list that joins all of the matching data from the other tables. Note
+#' that a few options have different defaults for the API.
+#'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                Set to \code{NULL} to return all rows.
+#'
+#' @param ...                     Options passed to \code{ctgov_query}.
+#'
+#' @return a named list of tables
+#'
+#' @importFrom dplyr collect semi_join tbl
+#' @export
+ctgov_query_api <- function(max_rows = 100L, ...)
+{
+  studies <- ctgov_query(max_rows = max_rows, ...)
+
+  obj <- list(
+    studies = studies,
+    design = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "design"), studies, by = "nct_id", copy = TRUE
+    )),
+    interventions = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "inter"), studies, by = "nct_id", copy = TRUE
+    )),
+    references = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "refs"), studies, by = "nct_id", copy = TRUE
+    )),
+    outcomes = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "outcome"), studies, by = "nct_id", copy = TRUE
+    )),
+    end_points = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "epoint"), studies, by = "nct_id", copy = TRUE
+    ))
+  )
+
+  return(obj)
+}
+
+
+#' Query terms for the ClinicalTrials.gov dataset
 #'
 #' Returns a list showing the available category levels for querying the data
 #' with the \code{ctgov_query} function.
