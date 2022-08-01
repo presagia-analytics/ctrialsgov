@@ -129,6 +129,8 @@
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
+#' @importFrom rlang .data .env
+#' @importFrom dplyr filter collect tbl
 #' @export
 ctgov_query <- function(
   data = NULL,
@@ -159,6 +161,7 @@ ctgov_query <- function(
   ignore_case = TRUE,
   match_all = FALSE
 ) {
+
   ############################################################################
   # check query input types
   assert(is.null(description_kw) | is.character(description_kw))
@@ -231,85 +234,110 @@ ctgov_query <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- as_tibble(dbReadTable(.volatiles$con, name = "join"))
+    z <- tbl(.volatiles$con, "join")
   } else {
     z <- data
   }
 
   ############################################################################
   # apply each of the categorical filters; these are fast so do them first
-  if (!is.null(study_type)) { z <- z[z$study_type %in% study_type,] }
-  if (!is.null(allocation)) { z <- z[z$allocation %in% allocation,] }
+  if (!is.null(study_type))
+  {
+    z <- filter(z, .data$study_type %in% .env$study_type)
+  }
+  if (!is.null(allocation))
+  {
+    z <- filter(z, .data$allocation %in% .env$allocation)
+  }
   if (!is.null(intervention_model))
   {
-    z <- z[z$intervention_model %in% intervention_model,]
+    z <- filter(z, .data$intervention_model %in% .env$intervention_model)
   }
   if (!is.null(observational_model))
   {
-    z <- z[z$observational_model %in% observational_model,]
+    z <- filter(z, .data$observational_model %in% .env$observational_model)
   }
   if (!is.null(primary_purpose))
   {
-    z <- z[z$primary_purpose %in% primary_purpose,]
+    z <- filter(z, .data$primary_purpose %in% .env$primary_purpose)
   }
   if (!is.null(time_perspective))
   {
-    z <- z[z$time_perspective %in% time_perspective,]
+    z <- filter(z, .data$time_perspective %in% .env$time_perspective)
   }
   if (!is.null(masking_description))
   {
-    z <- z[z$masking_description %in% masking_description,]
+    z <- filter(z, .data$masking_description %in% .env$masking_description)
   }
   if (!is.null(sampling_method))
   {
-    z <- z[z$sampling_method %in% sampling_method,]
+    z <- filter(z, .data$sampling_method %in% .env$sampling_method)
   }
-  if (!is.null(phase)) { z <- z[z$phase %in% phase,] }
-  if (!is.null(gender)) { z <- z[z$gender %in% gender,] }
-  if (!is.null(sponsor_type)) { z <- z[z$sponsor_type %in% sponsor_type,] }
+  if (!is.null(phase))
+  {
+    z <- filter(z, .data$phase %in% .env$phase)
+  }
+  if (!is.null(gender))
+  {
+    z <- filter(z, .data$gender %in% .env$gender)
+  }
+  if (!is.null(sponsor_type))
+  {
+    z <- filter(z, .data$sponsor_type %in% .env$sponsor_type)
+  }
 
   ############################################################################
   # apply each of continuous range filters; these are also fast
   if (!is.null(date_range))
   {
-    z <- z[!is.na(z$start_date),]
-    if (!is.na(date_range[1])) { z <- z[z$start_date >= date_range[1], ] }
-    if (!is.na(date_range[2])) { z <- z[z$start_date <= date_range[2], ] }
+    if (!is.na(date_range[1]))
+    {
+      val <- date_range[1]
+      z <- filter(z, .data$start_date >= .env$val)
+    }
+    if (!is.na(date_range[2]))
+    {
+      val <- date_range[2]
+      z <- filter(z, .data$start_date <= .env$val)
+    }
   }
   if (!is.null(enrollment_range))
   {
-    z <- z[!is.na(z$enrollment),]
     if (!is.na(enrollment_range[1]))
     {
-      z <- z[z$enrollment >= enrollment_range[1], ]
+      val <- enrollment_range[1]
+      z <- filter(z, .data$enrollment >= .env$val)
     }
     if (!is.na(enrollment_range[2]))
     {
-      z <- z[z$enrollment <= enrollment_range[2], ]
+      val <- enrollment_range[2]
+      z <- filter(z, .data$enrollment <= .env$val)
     }
   }
   if (!is.null(minimum_age_range))
   {
-    z <- z[!is.na(z$minimum_age),]
     if (!is.na(minimum_age_range[1]))
     {
-      z <- z[z$minimum_age >= minimum_age_range[1], ]
+      val <- minimum_age_range[1]
+      z <- filter(z, .data$minimum_age >= .env$val)
     }
     if (!is.na(minimum_age_range[2]))
     {
-      z <- z[z$minimum_age <= minimum_age_range[2], ]
+      val <- minimum_age_range[2]
+      z <- filter(z, .data$minimum_age <= .env$val)
     }
   }
   if (!is.null(maximum_age_range))
   {
-    z <- z[!is.na(z$maximum_age),]
     if (!is.na(maximum_age_range[1]))
     {
-      z <- z[z$maximum_age >= maximum_age_range[1], ]
+      val <- maximum_age_range[1]
+      z <- filter(z, .data$maximum_age >= .env$val)
     }
     if (!is.na(maximum_age_range[2]))
     {
-      z <- z[z$maximum_age <= maximum_age_range[2], ]
+      val <- maximum_age_range[2]
+      z <- filter(z, .data$maximum_age <= .env$val)
     }
   }
 
@@ -317,54 +345,45 @@ ctgov_query <- function(
   # finally, do the keyword searches
   if (!is.null(description_kw))
   {
-    ind <- search_kw(z$description, description_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, description_kw, "description", ignore_case, match_all)
   }
   if (!is.null(sponsor_kw))
   {
-    ind <- search_kw(z$sponsor, sponsor_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, sponsor_kw, "sponsor", ignore_case, match_all)
   }
   if (!is.null(brief_title_kw))
   {
-    ind <- search_kw(z$brief_title, brief_title_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, brief_title_kw, "brief_title", ignore_case, match_all)
   }
   if (!is.null(official_title_kw))
   {
-    ind <- search_kw(
-      z$official_title, official_title_kw, ignore_case, match_all
-    )
-    z <- z[ind,]
+    z <- query_kwds(z, official_title_kw, "official_title", ignore_case, match_all)
   }
   if (!is.null(criteria_kw))
   {
-    ind <- search_kw(z$criteria, criteria_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, criteria_kw, "criteria", ignore_case, match_all)
   }
   if (!is.null(intervention_desc_kw))
   {
-    ind <- search_kw(
-      z$intervention_model_description,
+    z <- query_kwds(
+      z,
       intervention_desc_kw,
+      "intervention_model_description",
       ignore_case,
       match_all
     )
-    z <- z[ind,]
   }
   if (!is.null(conditions_kw))
   {
-    ind <- search_kw(z$conditions, conditions_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, conditions_kw, "conditions", ignore_case, match_all)
   }
   if (!is.null(population_kw))
   {
-    ind <- search_kw(z$population, population_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, population_kw, "population", ignore_case, match_all)
   }
 
   # return the results
-  return(z)
+  return(dplyr::collect(z))
 }
 
 
@@ -402,6 +421,7 @@ ctgov_query <- function(
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
+#' @importFrom dplyr collect
 #' @export
 ctgov_query_design <- function(
   data = NULL,
@@ -420,7 +440,7 @@ ctgov_query_design <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- as_tibble(dbReadTable(.volatiles$con, name = "design"))
+    z <- tbl(.volatiles$con, "design")
   } else {
     z <- data
   }
@@ -429,17 +449,15 @@ ctgov_query_design <- function(
   # do the keyword searches
   if (!is.null(design_kw))
   {
-    ind <- search_kw(z$measure, design_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, design_kw, "measure", ignore_case, match_all)
   }
   if (!is.null(design_desc_kw))
   {
-    ind <- search_kw(z$description, design_desc_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, design_desc_kw, "description", ignore_case, match_all)
   }
 
   # return the results
-  return(z)
+  return(dplyr::collect(z))
 }
 
 
@@ -473,6 +491,7 @@ ctgov_query_design <- function(
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
+#' @importFrom dplyr collect
 #' @export
 ctgov_query_intervention <- function(
   data = NULL,
@@ -489,7 +508,7 @@ ctgov_query_intervention <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- as_tibble(dbReadTable(.volatiles$con, name = "inter"))
+    z <- tbl(.volatiles$con, "inter")
   } else {
     z <- data
   }
@@ -498,12 +517,11 @@ ctgov_query_intervention <- function(
   # do the keyword searches
   if (!is.null(intervention_kw))
   {
-    ind <- search_kw(z$name, intervention_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, intervention_kw, "name", ignore_case, match_all)
   }
 
   # return the results
-  return(z)
+  return(dplyr::collect(z))
 }
 
 
@@ -532,6 +550,7 @@ ctgov_query_intervention <- function(
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
+#' @importFrom dplyr collect
 #' @export
 ctgov_query_references <- function(
   data = NULL,
@@ -546,7 +565,7 @@ ctgov_query_references <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- as_tibble(dbReadTable(.volatiles$con, name = "refs"))
+    z <- tbl(.volatiles$con, "refs")
   } else {
     z <- data
   }
@@ -555,7 +574,7 @@ ctgov_query_references <- function(
   # do the keyword searches
 
   # return the results
-  return(z)
+  return(dplyr::collect(z))
 }
 
 
@@ -584,6 +603,7 @@ ctgov_query_references <- function(
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom DBI dbReadTable
+#' @importFrom dplyr collect
 #' @export
 ctgov_query_outcome <- function(
   data = NULL,
@@ -598,7 +618,7 @@ ctgov_query_outcome <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- as_tibble(dbReadTable(.volatiles$con, name = "outcome"))
+    z <- tbl(.volatiles$con, "outcome")
   } else {
     z <- data
   }
@@ -607,7 +627,7 @@ ctgov_query_outcome <- function(
   # do the keyword searches
 
   # return the results
-  return(z)
+  return(dplyr::collect(z))
 }
 
 
@@ -635,6 +655,7 @@ ctgov_query_outcome <- function(
 #' @return a tibble object queried from the loaded database
 #'
 #' @importFrom tibble as_tibble
+#' @importFrom dplyr collect
 #' @importFrom DBI dbReadTable
 #' @export
 ctgov_query_endpoint <- function(
@@ -650,7 +671,7 @@ ctgov_query_endpoint <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- as_tibble(dbReadTable(.volatiles$con, name = "epoint"))
+    z <- tbl(.volatiles$con, "epoint")
   } else {
     z <- data
   }
@@ -659,7 +680,7 @@ ctgov_query_endpoint <- function(
   # do the keyword searches
 
   # return the results
-  return(z)
+  return(dplyr::collect(z))
 }
 
 

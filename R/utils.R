@@ -117,3 +117,18 @@ isotime <- function() {
   tm <- as.POSIXlt(Sys.time())
   return(strftime(tm , "%Y-%m-%dT%H:%M:%OS"))
 }
+
+#' @importFrom dplyr filter sql
+query_kwds <- function(tbl, kwds, column, ignore_case = TRUE, match_all = FALSE) {
+  kwds <- paste0("%", kwds, "%")
+  if (ignore_case) {
+    like <- " ilike "
+  } else{
+    like <- " like "
+  }
+  query <- paste(
+    paste0(column, like, "'", kwds, "'"),
+    collapse = ifelse(match_all, " AND ", " OR ")
+  )
+  dplyr::filter(tbl, dplyr::sql(query))
+}

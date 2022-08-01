@@ -141,10 +141,10 @@ equivalent to the above:
 ```{r, message=FALSE}
 library(dplyr)
 
-ctgov_query() %>%
-  ctgov_query(description_kw = "cancer") %>%
-  ctgov_query(enrollment_range = c(100, 200)) %>%
-  ctgov_query(date_range = c("2019-01-01", "2020-02-01"))
+#ctgov_query() %>%
+#  ctgov_query(description_kw = "cancer") %>%
+#  ctgov_query(enrollment_range = c(100, 200)) %>%
+#  ctgov_query(date_range = c("2019-01-01", "2020-02-01"))
 ```
 
 ## Visualizing the output
