@@ -97,6 +97,7 @@ ctgov_to_plotly <- function(p, ...) {
   UseMethod("ctgov_to_plotly", p)
 }
 
+#' @export
 ctgov_to_plotly.default <- function(p, ...) {
   stop(
     "Don't know how to create plotly plot from object of type:",
@@ -104,6 +105,7 @@ ctgov_to_plotly.default <- function(p, ...) {
   )
 }
 
+#' @export
 ctgov_to_plotly.gg <- function(p, ...) {
   ggplotly(p, ...)
 }
