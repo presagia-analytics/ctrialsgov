@@ -1,6 +1,6 @@
 .volatiles <- new.env(parent=emptyenv())
 
-.volatiles$tbl <- NULL
+.volatiles$con <- NULL
 .volatiles$ol <- list(
   study_type = c("Interventional", "Observational",
                  "Observational [Patient Registry]", "Expanded Access"),
@@ -24,4 +24,7 @@
             "Phase 2/Phase 3", "Phase 3", "Phase 4"),
   gender = c("All", "Female", "Male"),
   sponsor_type = c("Industry", "NIH", "U.S. Fed", "Other")
+)
+.volatiles$tbl_names <- c(
+  "design", "epoint", "inter", "join", "outcome", "refs"
 )

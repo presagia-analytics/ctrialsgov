@@ -3,6 +3,80 @@ library(ctrialsgov)
 library(RPostgreSQL)
 library(dplyr)
 library(lubridate)
+library(duckdb)
+
+#conn <- ctgov_create_duckdb("pipedata")
+
+db <- duckdb("/Users/taylor/local/duck/ctgov_db_all")
+conn <- dbConnect(db)
+ctgov_create_data(conn)
+
+# For R package datasets, need to remove non-ASCII characters
+remove_nonascii <- function(df)
+{
+  these <- which(sapply(df, function(v) class(v)[1]) == "character")
+  for (j in these) { df[[j]] <- iconv(df[[j]], "latin1", "ASCII", sub="") }
+  df
+}
+
+z <- list()
+.volatiles <- ctrialsgov:::.volatiles
+for (tbl in .volatiles$tbl_names)
+{
+  z[[tbl]] <- as_tibble(dbReadTable(.volatiles$con, name = tbl))
+}
+
+# Create sample data (this file is less than 3 MB, small enough to be included
+# on CRAN)
+set.seed(1L)
+tbl_join_sample <- z$join
+tbl_join_sample <- filter(tbl_join_sample, year(start_date) <= year(today()))
+tbl_join_sample <- slice_sample(tbl_join_sample, prop = 0.001)
+tbl_join_sample <- arrange(tbl_join_sample, desc(start_date))
+tbl_join_sample <- remove_nonascii(tbl_join_sample)
+these_ids <- tbl_join_sample$nct_id
+
+z2 <- z
+for (tbl in .volatiles$tbl_names)
+{
+  z2[[tbl]] <- z2[[tbl]][z2[[tbl]]$nct_id %in% these_ids,]
+}
+
+tbl_join_sample <- z2
+use_data(tbl_join_sample, overwrite = TRUE)
+
+# Build cancer studies dataset for the package
+cancer_studies <- ctgov_query(
+  study_type = "Interventional",
+  sponsor_type = "INDUSTRY",
+  date_range = c("2021-01-01", NA),
+  description_kw = c("cancer", "carcinoma")) %>%
+  filter(
+    !is.na(phase) &
+    primary_purpose == "Treatment",
+    enrollment > 100
+  )
+
+cancer_studies <- remove_nonascii(cancer_studies)
+these_ids <- cancer_studies$nct_id
+
+z2 <- z
+for (tbl in .volatiles$tbl_names)
+{
+  z2[[tbl]] <- z2[[tbl]][z2[[tbl]]$nct_id %in% these_ids,]
+}
+
+cancer_studies <- z2
+use_data(cancer_studies, overwrite = TRUE)
+
+
+
+
+
+
+
+
+
 
 # Create dataset based on local installation of PostgreSQL
 drv <- dbDriver('PostgreSQL')

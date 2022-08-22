@@ -4,11 +4,15 @@
 \alias{ctgov_load_sample}
 \title{Load sample dataset}
 \usage{
-ctgov_load_sample(cancer_studies = FALSE)
+ctgov_load_sample(cancer_studies = FALSE, dbdir = NULL)
 }
 \arguments{
 \item{cancer_studies}{logical; should we load a currated list of cancer
 clinical trials}
+
+\item{dbdir}{Location for the output database files. Should be a path to
+an existing directory in the file system. By default will
+place files in the location where the package is installed.}
 }
 \value{
 does not return any value; used only for side effects

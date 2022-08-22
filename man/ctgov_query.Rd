@@ -13,8 +13,6 @@ ctgov_query(
   criteria_kw = NULL,
   intervention_kw = NULL,
   intervention_desc_kw = NULL,
-  outcome_kw = NULL,
-  outcome_desc_kw = NULL,
   conditions_kw = NULL,
   population_kw = NULL,
   date_range = NULL,
@@ -33,7 +31,8 @@ ctgov_query(
   gender = NULL,
   sponsor_type = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 )
 }
 \arguments{
@@ -68,14 +67,6 @@ intervention names field. Set to
 
 \item{intervention_desc_kw}{character vector of keywords to search in the
 intervention description field. Set to
-\code{NULL} to avoid searching this field.}
-
-\item{outcome_kw}{character vector of keywords to search in the
-outcome measures field. Set to
-\code{NULL} to avoid searching this field.}
-
-\item{outcome_desc_kw}{character vector of keywords to search in the
-outcome description field. Set to
 \code{NULL} to avoid searching this field.}
 
 \item{conditions_kw}{character vector of keywords to search in the
@@ -159,6 +150,9 @@ capitalization. The default is \code{TRUE}.}
 
 \item{match_all}{logical. Should the results required matching
 all the keywords? The default is \code{FALSE}.}
+
+\item{max_rows}{integer. The maximum number of rows to return;
+The default \code{NULL} returns all rows.}
 }
 \value{
 a tibble object queried from the loaded database
@@ -167,7 +161,7 @@ a tibble object queried from the loaded database
 This function selects a subset of the clinical trials data by using a
 a variety of different search parameters. These include free text search
 keywords, range queries for the continuous variables, and exact matches for
-categorical fields. The function \code{ctgov_query_terms} shows the
+categorical fields. The function \code{ctgov_get_query_terms} shows the
 categorical levels for the latter. The function will either take the entire
 dataset loaded into the package environment or a previously queried input.
 }

@@ -1,7 +1,7 @@
 Package: ctrialsgov
 Type: Package
 Title: Query Data from ClinicalTrials.gov
-Version: 0.3.3
+Version: 0.4.2
 Authors@R: c(
   person(given = "Taylor",
            family = "Arnold",
@@ -21,7 +21,7 @@ Maintainer: Taylor Arnold <tarnold2@richmond.edu>
 Description: Tools to create and query database from the U.S. National Library
   of Medicine's Clinical Trials database <https://clinicaltrials.gov/>. Functions
   provide access a variety of techniques for searching the data using range
-  queries, categorical filtering, and by searching for full-text keywords. 
+  queries, categorical filtering, and by searching for full-text keywords.
   Minimal graphical tools are also provided for interactively exploring the
   constructed data.
 License: MIT + file LICENSE
@@ -39,6 +39,8 @@ Imports:
   stringi,
   tibble,
   DBI,
+  readr,
+  duckdb,
   methods,
   Matrix,
   tokenizers,
@@ -48,10 +50,11 @@ Suggests:
   knitr,
   rmarkdown,
   testthat (>= 3.0.0),
+  dbplyr,
   usethis
 VignetteBuilder:
   knitr
 LazyData: true
 LazyDataCompression: bzip2
 Config/testthat/edition: 3
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1

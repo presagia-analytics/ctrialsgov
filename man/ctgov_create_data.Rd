@@ -4,10 +4,14 @@
 \alias{ctgov_create_data}
 \title{Initialize the connection}
 \usage{
-ctgov_create_data(con, verbose = TRUE)
+ctgov_create_data(con, dbdir = NULL, verbose = TRUE)
 }
 \arguments{
 \item{con}{an DBI connection object to the database}
+
+\item{dbdir}{Location for the output database files. Should be a path to
+an existing directory in the file system. By default will
+place files in the location where the package is installed.}
 
 \item{verbose}{logical flag; should progress messages be printed?;
 defaults to \code{TRUE}}
@@ -18,7 +22,7 @@ does not return any value; used only for side effects
 \description{
 This function must be run prior to other functions in the package. It
 creates a parsed and cached version of the clinical trials dataset in
-memory in R. This makes other function calls relatively efficient. other
+memory in R. This makes other function calls relatively efficient.
 }
 \author{
 Taylor B. Arnold, \email{taylor.arnold@acm.org}

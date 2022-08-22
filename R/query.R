@@ -3,7 +3,7 @@
 #' This function selects a subset of the clinical trials data by using a
 #' a variety of different search parameters. These include free text search
 #' keywords, range queries for the continuous variables, and exact matches for
-#' categorical fields. The function \code{ctgov_query_terms} shows the
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
 #' categorical levels for the latter. The function will either take the entire
 #' dataset loaded into the package environment or a previously queried input.
 #'
@@ -39,14 +39,6 @@
 #'
 #' @param intervention_desc_kw    character vector of keywords to search in the
 #'                                intervention description field. Set to
-#'                                \code{NULL} to avoid searching this field.
-#'
-#' @param outcome_kw              character vector of keywords to search in the
-#'                                outcome measures field. Set to
-#'                                \code{NULL} to avoid searching this field.
-#'
-#' @param outcome_desc_kw         character vector of keywords to search in the
-#'                                outcome description field. Set to
 #'                                \code{NULL} to avoid searching this field.
 #'
 #' @param conditions_kw           character vector of keywords to search in the
@@ -131,11 +123,18 @@
 #' @param match_all               logical. Should the results required matching
 #'                                all the keywords? The default is \code{FALSE}.
 #'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
 #'
 #' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
 #' @return a tibble object queried from the loaded database
 #'
-#' @importFrom purrr map_chr
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @importFrom rlang .data .env
+#' @importFrom dplyr filter collect tbl
+#' @importFrom utils head
 #' @export
 ctgov_query <- function(
   data = NULL,
@@ -146,8 +145,6 @@ ctgov_query <- function(
   criteria_kw = NULL,
   intervention_kw = NULL,
   intervention_desc_kw = NULL,
-  outcome_kw = NULL,
-  outcome_desc_kw = NULL,
   conditions_kw = NULL,
   population_kw = NULL,
   date_range = NULL,
@@ -166,8 +163,10 @@ ctgov_query <- function(
   gender = NULL,
   sponsor_type = NULL,
   ignore_case = TRUE,
-  match_all = FALSE
+  match_all = FALSE,
+  max_rows = NULL
 ) {
+
   ############################################################################
   # check query input types
   assert(is.null(description_kw) | is.character(description_kw))
@@ -176,8 +175,6 @@ ctgov_query <- function(
   assert(is.null(official_title_kw) | is.character(official_title_kw))
   assert(is.null(intervention_kw) | is.character(intervention_kw))
   assert(is.null(intervention_desc_kw) | is.character(intervention_desc_kw))
-  assert(is.null(outcome_kw) | is.character(outcome_kw))
-  assert(is.null(outcome_desc_kw) | is.character(outcome_desc_kw))
   assert(is.null(conditions_kw) | is.character(conditions_kw))
   assert(is.null(population_kw) | is.character(population_kw))
 
@@ -242,85 +239,111 @@ ctgov_query <- function(
   if (is.null(data))
   {
     assert_data_loaded()
-    z <- .volatiles$tbl$join
+    z <- dplyr::tbl(.volatiles$con, "join")
   } else {
-    z <- data
+    duckdb::duckdb_register(.volatiles$memory, "join", data)
+    z <- dplyr::tbl(.volatiles$memory, "join")
   }
 
   ############################################################################
   # apply each of the categorical filters; these are fast so do them first
-  if (!is.null(study_type)) { z <- z[z$study_type %in% study_type,] }
-  if (!is.null(allocation)) { z <- z[z$allocation %in% allocation,] }
+  if (!is.null(study_type))
+  {
+    z <- filter(z, .data$study_type %in% .env$study_type)
+  }
+  if (!is.null(allocation))
+  {
+    z <- filter(z, .data$allocation %in% .env$allocation)
+  }
   if (!is.null(intervention_model))
   {
-    z <- z[z$intervention_model %in% intervention_model,]
+    z <- filter(z, .data$intervention_model %in% .env$intervention_model)
   }
   if (!is.null(observational_model))
   {
-    z <- z[z$observational_model %in% observational_model,]
+    z <- filter(z, .data$observational_model %in% .env$observational_model)
   }
   if (!is.null(primary_purpose))
   {
-    z <- z[z$primary_purpose %in% primary_purpose,]
+    z <- filter(z, .data$primary_purpose %in% .env$primary_purpose)
   }
   if (!is.null(time_perspective))
   {
-    z <- z[z$time_perspective %in% time_perspective,]
+    z <- filter(z, .data$time_perspective %in% .env$time_perspective)
   }
   if (!is.null(masking_description))
   {
-    z <- z[z$masking_description %in% masking_description,]
+    z <- filter(z, .data$masking_description %in% .env$masking_description)
   }
   if (!is.null(sampling_method))
   {
-    z <- z[z$sampling_method %in% sampling_method,]
+    z <- filter(z, .data$sampling_method %in% .env$sampling_method)
   }
-  if (!is.null(phase)) { z <- z[z$phase %in% phase,] }
-  if (!is.null(gender)) { z <- z[z$gender %in% gender,] }
-  if (!is.null(sponsor_type)) { z <- z[z$sponsor_type %in% sponsor_type,] }
+  if (!is.null(phase))
+  {
+    z <- filter(z, .data$phase %in% .env$phase)
+  }
+  if (!is.null(gender))
+  {
+    z <- filter(z, .data$gender %in% .env$gender)
+  }
+  if (!is.null(sponsor_type))
+  {
+    z <- filter(z, .data$sponsor_type %in% .env$sponsor_type)
+  }
 
   ############################################################################
   # apply each of continuous range filters; these are also fast
   if (!is.null(date_range))
   {
-    z <- z[!is.na(z$start_date),]
-    if (!is.na(date_range[1])) { z <- z[z$start_date >= date_range[1], ] }
-    if (!is.na(date_range[2])) { z <- z[z$start_date <= date_range[2], ] }
+    if (!is.na(date_range[1]))
+    {
+      val <- date_range[1]
+      z <- filter(z, .data$start_date >= .env$val)
+    }
+    if (!is.na(date_range[2]))
+    {
+      val <- date_range[2]
+      z <- filter(z, .data$start_date <= .env$val)
+    }
   }
   if (!is.null(enrollment_range))
   {
-    z <- z[!is.na(z$enrollment),]
     if (!is.na(enrollment_range[1]))
     {
-      z <- z[z$enrollment >= enrollment_range[1], ]
+      val <- enrollment_range[1]
+      z <- filter(z, .data$enrollment >= .env$val)
     }
     if (!is.na(enrollment_range[2]))
     {
-      z <- z[z$enrollment <= enrollment_range[2], ]
+      val <- enrollment_range[2]
+      z <- filter(z, .data$enrollment <= .env$val)
     }
   }
   if (!is.null(minimum_age_range))
   {
-    z <- z[!is.na(z$minimum_age),]
     if (!is.na(minimum_age_range[1]))
     {
-      z <- z[z$minimum_age >= minimum_age_range[1], ]
+      val <- minimum_age_range[1]
+      z <- filter(z, .data$minimum_age >= .env$val)
     }
     if (!is.na(minimum_age_range[2]))
     {
-      z <- z[z$minimum_age <= minimum_age_range[2], ]
+      val <- minimum_age_range[2]
+      z <- filter(z, .data$minimum_age <= .env$val)
     }
   }
   if (!is.null(maximum_age_range))
   {
-    z <- z[!is.na(z$maximum_age),]
     if (!is.na(maximum_age_range[1]))
     {
-      z <- z[z$maximum_age >= maximum_age_range[1], ]
+      val <- maximum_age_range[1]
+      z <- filter(z, .data$maximum_age >= .env$val)
     }
     if (!is.na(maximum_age_range[2]))
     {
-      z <- z[z$maximum_age <= maximum_age_range[2], ]
+      val <- maximum_age_range[2]
+      z <- filter(z, .data$maximum_age <= .env$val)
     }
   }
 
@@ -328,81 +351,461 @@ ctgov_query <- function(
   # finally, do the keyword searches
   if (!is.null(description_kw))
   {
-    ind <- search_kw(z$description, description_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, description_kw, "description", ignore_case, match_all)
   }
   if (!is.null(sponsor_kw))
   {
-    ind <- search_kw(z$sponsor, sponsor_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, sponsor_kw, "sponsor", ignore_case, match_all)
   }
   if (!is.null(brief_title_kw))
   {
-    ind <- search_kw(z$brief_title, brief_title_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, brief_title_kw, "brief_title", ignore_case, match_all)
   }
   if (!is.null(official_title_kw))
   {
-    ind <- search_kw(
-      z$official_title, official_title_kw, ignore_case, match_all
-    )
-    z <- z[ind,]
+    z <- query_kwds(z, official_title_kw, "official_title", ignore_case, match_all)
   }
   if (!is.null(criteria_kw))
   {
-    ind <- search_kw(z$criteria, criteria_kw, ignore_case, match_all)
-    z <- z[ind,]
-  }
-  if (!is.null(intervention_kw))
-  {
-    inames <- purrr::map_chr(
-      z$interventions, function(v) paste0(v$name, collapse = " ")
-    )
-    ind <- search_kw(inames, intervention_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, criteria_kw, "criteria", ignore_case, match_all)
   }
   if (!is.null(intervention_desc_kw))
   {
-    ind <- search_kw(
-      z$intervention_model_description,
+    z <- query_kwds(
+      z,
       intervention_desc_kw,
+      "intervention_model_description",
       ignore_case,
       match_all
     )
-    z <- z[ind,]
-  }
-  if (!is.null(outcome_kw))
-  {
-    inames <- purrr::map_chr(
-      z$outcomes, function(v) paste0(v$measure, collapse = " ")
-    )
-    ind <- search_kw(inames, outcome_kw, ignore_case, match_all)
-    z <- z[ind,]
-  }
-  if (!is.null(outcome_desc_kw))
-  {
-    inames <- purrr::map_chr(
-      z$outcomes, function(v) paste0(v$description, collapse = " ")
-    )
-    ind <- search_kw(inames, outcome_desc_kw, ignore_case, match_all)
-    z <- z[ind,]
   }
   if (!is.null(conditions_kw))
   {
-    ind <- search_kw(z$conditions, conditions_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, conditions_kw, "conditions", ignore_case, match_all)
   }
   if (!is.null(population_kw))
   {
-    ind <- search_kw(z$population, population_kw, ignore_case, match_all)
-    z <- z[ind,]
+    z <- query_kwds(z, population_kw, "population", ignore_case, match_all)
+  }
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
   }
 
   # return the results
-  return(z)
+  return(dplyr::collect(z))
 }
 
-#' Query the ClinicalTrials.gov dataset
+
+#' Query design data from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param design_kw               character vector of keywords to search in the
+#'                                outcome measures field. Set to
+#'                                \code{NULL} to avoid searching this field.
+#'
+#' @param design_desc_kw          character vector of keywords to search in the
+#'                                outcome description field. Set to
+#'                                \code{NULL} to avoid searching this field.
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @importFrom dplyr collect tbl
+#' @importFrom utils head
+#' @export
+ctgov_query_design <- function(
+  data = NULL,
+  design_kw = NULL,
+  design_desc_kw = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE,
+  max_rows = NULL
+) {
+  ############################################################################
+  # check query input types
+  assert(is.null(design_kw) | is.character(design_kw))
+  assert(is.null(design_desc_kw) | is.character(design_desc_kw))
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- dplyr::tbl(.volatiles$con, "design")
+  } else {
+    duckdb::duckdb_register(.volatiles$memory, "design", data)
+    z <- dplyr::tbl(.volatiles$memory, "design")
+  }
+
+  ############################################################################
+  # do the keyword searches
+  if (!is.null(design_kw))
+  {
+    z <- query_kwds(z, design_kw, "measure", ignore_case, match_all)
+  }
+  if (!is.null(design_desc_kw))
+  {
+    z <- query_kwds(z, design_desc_kw, "description", ignore_case, match_all)
+  }
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
+
+  # return the results
+  return(dplyr::collect(z))
+}
+
+
+#' Query intervention data from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param intervention_kw         character vector of keywords to search in the
+#'                                intervention names field. Set to
+#'                                \code{NULL} to avoid searching this field.
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @importFrom dplyr collect tbl
+#' @importFrom utils head
+#' @export
+ctgov_query_intervention <- function(
+  data = NULL,
+  intervention_kw = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE,
+  max_rows = NULL
+) {
+  ############################################################################
+  # check query input types
+  assert(is.null(intervention_kw) | is.character(intervention_kw))
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- dplyr::tbl(.volatiles$con, "inter")
+  } else {
+    duckdb::duckdb_register(.volatiles$memory, "inter", data)
+    z <- dplyr::tbl(.volatiles$memory, "inter")
+  }
+
+  ############################################################################
+  # do the keyword searches
+  if (!is.null(intervention_kw))
+  {
+    z <- query_kwds(z, intervention_kw, "name", ignore_case, match_all)
+  }
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
+
+  # return the results
+  return(dplyr::collect(z))
+}
+
+
+#' Query references table from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @importFrom dplyr collect tbl
+#' @importFrom utils head
+#' @export
+ctgov_query_references <- function(
+  data = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE,
+  max_rows = NULL
+) {
+  ############################################################################
+  # check query input types
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- dplyr::tbl(.volatiles$con, "refs")
+  } else {
+    duckdb::duckdb_register(.volatiles$memory, "refs", data)
+    z <- dplyr::tbl(.volatiles$memory, "refs")
+  }
+
+  ############################################################################
+  # do the keyword searches
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
+
+  # return the results
+  return(dplyr::collect(z))
+}
+
+
+#' Query outcome table from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom DBI dbReadTable
+#' @importFrom dplyr collect tbl
+#' @importFrom utils head
+#' @export
+ctgov_query_outcome <- function(
+  data = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE,
+  max_rows = NULL
+) {
+  ############################################################################
+  # check query input types
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- dplyr::tbl(.volatiles$con, "outcome")
+  } else {
+    duckdb::duckdb_register(.volatiles$memory, "outcome", data)
+    z <- dplyr::tbl(.volatiles$memory, "outcome")
+  }
+
+  ############################################################################
+  # do the keyword searches
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
+
+  # return the results
+  return(dplyr::collect(z))
+}
+
+
+#' Query endpoint table from the ClinicalTrials.gov dataset
+#'
+#' This function selects a subset of the clinical trials data by using a
+#' a variety of different search parameters. These include free text search
+#' keywords, range queries for the continuous variables, and exact matches for
+#' categorical fields. The function \code{ctgov_get_query_terms} shows the
+#' categorical levels for the latter. The function will either take the entire
+#' dataset loaded into the package environment or a previously queried input.
+#'
+#'
+#' @param data                    a dataset to search over; set to \code{NULL}
+#'                                to use the full dataset that is currently
+#'                                loaded
+#'
+#' @param ignore_case             logical. Should the search ignore
+#'                                capitalization. The default is \code{TRUE}.
+#'
+#' @param match_all               logical. Should the results required matching
+#'                                all the keywords? The default is \code{FALSE}.
+#'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                The default \code{NULL} returns all rows.
+#'
+#'
+#' @author Taylor B. Arnold, \email{taylor.arnold@@acm.org}
+#' @return a tibble object queried from the loaded database
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr collect tbl
+#' @importFrom DBI dbReadTable
+#' @importFrom utils head
+#' @export
+ctgov_query_endpoint <- function(
+  data = NULL,
+  ignore_case = TRUE,
+  match_all = FALSE,
+  max_rows = NULL
+) {
+  ############################################################################
+  # check query input types
+
+  ############################################################################
+  # if no data was given, grab the current version of the data
+  if (is.null(data))
+  {
+    assert_data_loaded()
+    z <- dplyr::tbl(.volatiles$con, "epoint")
+  } else {
+    duckdb::duckdb_register(.volatiles$memory, "epoint", data)
+    z <- dplyr::tbl(.volatiles$memory, "epoint")
+  }
+
+  ############################################################################
+  # do the keyword searches
+
+  ############################################################################
+  # limit number of results, if needed
+  if (!is.null(max_rows))
+  {
+    z <- utils::head(z, max_rows)
+  }
+
+  # return the results
+  return(dplyr::collect(z))
+}
+
+
+#' Wrapper function for the API to return all tables
+#'
+#' Passes arguments to the \code{ctgov_query} function, but returns the result
+#' as a list that joins all of the matching data from the other tables. Note
+#' that a few options have different defaults for the API.
+#'
+#' @param max_rows                integer. The maximum number of rows to return;
+#'                                Set to \code{NULL} to return all rows.
+#'
+#' @param ...                     Options passed to \code{ctgov_query}.
+#'
+#' @return a named list of tables
+#'
+#' @importFrom dplyr collect semi_join tbl
+#' @export
+ctgov_query_api <- function(max_rows = 100L, ...)
+{
+  studies <- ctgov_query(max_rows = max_rows, ...)
+
+  obj <- list(
+    studies = studies,
+    design = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "design"), studies, by = "nct_id", copy = TRUE
+    )),
+    interventions = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "inter"), studies, by = "nct_id", copy = TRUE
+    )),
+    references = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "refs"), studies, by = "nct_id", copy = TRUE
+    )),
+    outcomes = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "outcome"), studies, by = "nct_id", copy = TRUE
+    )),
+    end_points = dplyr::collect(dplyr::semi_join(
+      dplyr::tbl(.volatiles$con, "epoint"), studies, by = "nct_id", copy = TRUE
+    ))
+  )
+
+  return(obj)
+}
+
+
+#' Query terms for the ClinicalTrials.gov dataset
 #'
 #' Returns a list showing the available category levels for querying the data
 #' with the \code{ctgov_query} function.
@@ -410,7 +813,7 @@ ctgov_query <- function(
 #' @return a named list of allowed categorical values for the query
 #'
 #' @export
-ctgov_query_terms <- function()
+ctgov_get_query_terms <- function()
 {
   return(.volatiles$ol)
 }
