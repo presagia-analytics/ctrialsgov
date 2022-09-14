@@ -120,7 +120,8 @@ isotime <- function() {
 
 #' @importFrom dplyr filter sql
 query_kwds <- function(tbl, kwds, column, ignore_case = TRUE, match_all = FALSE) {
-  kwds <- paste0("%", kwds, "%")
+  kwds <- paste0("%", kwds, "%") |>
+    gsub("'", "''", x = _)
   if (ignore_case) {
     like <- " ilike "
   } else{
@@ -130,5 +131,6 @@ query_kwds <- function(tbl, kwds, column, ignore_case = TRUE, match_all = FALSE)
     paste0(column, like, "'", kwds, "'"),
     collapse = ifelse(match_all, " AND ", " OR ")
   )
+  
   dplyr::filter(tbl, dplyr::sql(query))
 }
