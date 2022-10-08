@@ -118,6 +118,12 @@ isotime <- function() {
   return(strftime(tm , "%Y-%m-%dT%H:%M:%OS"))
 }
 
+#' @importFrom DBI dbDisconnect
+finalize_conn <- function(e) {
+  DBI::dbDisconnect(e$con, shutdown = TRUE)
+  DBI::dbDisconnect(e$memory, shutdown = TRUE)
+}
+
 #' @importFrom dplyr filter sql
 query_kwds <- function(tbl, kwds, column, ignore_case = TRUE, match_all = FALSE) {
   kwds <- paste0("%", kwds, "%") |>
