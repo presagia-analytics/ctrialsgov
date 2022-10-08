@@ -120,8 +120,19 @@ isotime <- function() {
 
 #' @importFrom DBI dbDisconnect
 finalize_conn <- function(e) {
-  DBI::dbDisconnect(e$con, shutdown = TRUE)
-  DBI::dbDisconnect(e$memory, shutdown = TRUE)
+  check_clear_conn(e$con)
+  check_clear_conn(e$memory)
+}
+
+#' @importFrom DBI dbDisconnect dbIsValid
+check_clear_conn <- function(conn) {
+  if (!is.null(conn))
+  {
+    if (DBI::dbIsValid(conn))
+    {
+      DBI::dbDisconnect(conn, shutdown = TRUE)
+    }
+  }
 }
 
 #' @importFrom dplyr filter sql

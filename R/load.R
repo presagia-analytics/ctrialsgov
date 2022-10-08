@@ -26,7 +26,7 @@
 #' @export
 #' @importFrom duckdb duckdb
 #' @importFrom readr read_delim
-#' @importFrom DBI dbConnect dbWriteTable
+#' @importFrom DBI dbConnect dbWriteTable dbDisconnect
 ctgov_create_duckdb <- function(
   basedir, dbdir = "ctgov_db_all", verbose = TRUE
 ) {
@@ -65,6 +65,11 @@ ctgov_create_duckdb <- function(
     dbWriteTable(conn = conn, name = tables[j], value = z, overwrite = TRUE)
   })
 
+  # close connection and reopen in a read only format
+  check_clear_conn(conn)
+  db <- duckdb(dbdir, read_only = TRUE)
+  conn <- dbConnect(db, read_only = TRUE)
+
   return(conn)
 }
 
@@ -102,10 +107,11 @@ ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
   }
 
   # create a connection to the output dataset
+  check_clear_conn(.volatiles$con)
+  check_clear_conn(.volatiles$memory)
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db)
   .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
-  reg.finalizer(.volatiles, finalize_conn, onexit = TRUE)
 
   # Grab the data
   cmsg(verbose, "[%s] LOADING DATA TABLES\n", isotime())
@@ -367,6 +373,12 @@ ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
     conn = .volatiles$con, name = "epoint", value = tbl_epoint, overwrite = TRUE
   )
 
+  # close connection and reopen in a read only format
+  check_clear_conn(.volatiles$con)
+  db <- duckdb::duckdb(dbdir)
+  .volatiles$con <- dbConnect(db, read_only = TRUE)
+  reg.finalizer(.volatiles, finalize_conn, onexit = TRUE)
+
   invisible(NULL)
 }
 
@@ -398,6 +410,8 @@ ctgov_load_sample <- function(cancer_studies = FALSE, dbdir = NULL)
   }
 
   # create a connection to the output dataset
+  check_clear_conn(.volatiles$con)
+  check_clear_conn(.volatiles$memory)
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db)
   .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
@@ -421,6 +435,11 @@ ctgov_load_sample <- function(cancer_studies = FALSE, dbdir = NULL)
   }
 
   make_categories()
+
+  # close connection and reopen in a read only format
+  DBI::dbDisconnect(.volatiles$con, shutdown = TRUE)
+  db <- duckdb::duckdb(dbdir)
+  .volatiles$con <- dbConnect(db, read_only = TRUE)
 }
 
 #' Download and/or load cached data
@@ -518,6 +537,8 @@ ctgov_load_rds_file <- function(file, dbdir = NULL) {
   }
 
   # create a connection to the output dataset
+  check_clear_conn(.volatiles$con)
+  check_clear_conn(.volatiles$memory)
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db)
   .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
@@ -533,6 +554,11 @@ ctgov_load_rds_file <- function(file, dbdir = NULL) {
   }
 
   make_categories()
+
+  # close connection and reopen in a read only format
+  DBI::dbDisconnect(.volatiles$con, shutdown = TRUE)
+  db <- duckdb::duckdb(dbdir)
+  .volatiles$con <- dbConnect(db, read_only = TRUE)
 }
 
 #' Load Database from DuckDB File
@@ -550,6 +576,8 @@ ctgov_load_rds_file <- function(file, dbdir = NULL) {
 ctgov_load_duckdb_file <- function(dbdir = NULL) {
 
   # create a connection to the output dataset
+  check_clear_conn(.volatiles$con)
+  check_clear_conn(.volatiles$memory)
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db, read_only = TRUE)
   .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
