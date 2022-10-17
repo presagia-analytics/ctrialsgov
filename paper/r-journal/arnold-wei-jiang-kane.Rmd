@@ -52,6 +52,19 @@ library(palmerpenguins)
 
 - What is clinicaltrials.gov?
 - Which trials are in clinicaltrials.gov?
+
+The [clinicaltrials.gov](https://clinicaltrials.gov) website is run by United States National Library of Medicine and 
+documents all clinical trials run in the United States. It is currently the largest clinical trial registry, containing
+information about over 420,000 clinical trials from over 200 countries for various study types and indications. It is a public
+resource aimed at whose intention is to improve access to trial information for individuals with serious disease and conditions. 
+By law (FDA Regulations 21 CFR Parts 312 and 812 [@ctgovfda]), trials occurring enrolling patients in the United States must include
+
+1. Federally and privately funded clinical trials;
+2. The purpose of each experimental drug;
+3. Subject eligibility criteria to participate in the clinical trial;
+4. The location of clinical trial sites being used for a study; and
+5. A point of contact for patients interested in enrolling in the trial.
+
 - How do we query clinicaltrials.gov through the web?
 - How are the data stored? How are the data made available?
 - Why might we want to have a package for accessing clinicaltrials.gov?
