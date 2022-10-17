@@ -79,6 +79,12 @@ By law (FDA Regulations 21 CFR Parts 312 and 812 [@ctgovfda]), trials occurring 
 
 # Acquiring and preprocessing the data
 
+- How is the raw data provided?
+- What is the timeline for the snapshots?
+- How do we acquire the snapshots?
+- How do we create the database the raw data set? Why did we choose DuckDB for this?
+- How do we create the derived data set? How is it different from the raw-data database?
+
 # Querying trials
 
 # Visualizing trials
