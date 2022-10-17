@@ -1,0 +1,127 @@
+---
+title: "ToOoOlTiPs: An R Package for Customizable Tooltips in Interactive Graphics"
+abstract: >
+  An abstract of less than 150 words.
+draft: true
+author:  
+  # see ?rjournal_article for more information
+  - name: Taylor Arnold
+    email: tarnold2@richmond.edu
+    orcid: 0000-0003-0576-0669
+    affiliation: Department of Mathematics, University of Richmond
+    address:
+      - 410 Westhampton Way
+      - Richmond, VA 23173, USA
+  - name: Auston Wei
+    email: awei@telperian.com
+    affiliation: The Cleveland Clinic
+    address:
+      - 9500 Euclid Avenue
+      - Cleveland, Ohio 44195, USA
+  - name: Xun (Tony) Jiang
+    email: xunj@amgen.com
+    affiliation: Amgen Inc.
+    address:
+      - One Amgen Center Drive
+      - Thousand Oaks, CA 91320-1799, USA
+  - name: Michael J. Kane
+    email: michael.kane@yale.edu
+    orcid: 0000-0003-1899-6662
+    affiliation: Yale University, School of Public Health, Biostatistics Department
+    address:
+    - 60 College Street
+    - New Haven, CT 06511, USA
+date: "October 17, 2021"
+type: package
+output: 
+  rjtools::rjournal_web_article:
+    self_contained: yes
+    toc: no
+bibliography: RJreferences.bib
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(plotly)
+library(ggplot2)
+library(palmerpenguins)
+```
+
+# Introduction and background
+
+- What is clinicaltrials.gov?
+- Which trials are in clinicaltrials.gov?
+- How do we query clinicaltrials.gov through the web?
+- How are the data stored? How are the data made available?
+- Why might we want to have a package for accessing clinicaltrials.gov?
+  - Programmatically query trials
+  - Useful for trial planning
+  - Understand trends drug development
+- How does the package facilitate trial planning and understanding trends?
+  - Enhanced query capabilities
+  - Visualization routines
+  - NLP preprocessing
+- Layout for the rest of the article
+
+# Acquiring and preprocessing the data
+
+# Querying trials
+
+# Visualizing trials
+
+# Application: A regression with TFIDF and endpoint met
+
+# Conclusions
+
+Interactive data graphics provides plots that allow users to interact them. One of the most basic types of interaction is through tooltips, where users are provided additional information about elements in the plot by moving the cursor over the plot.
+
+This paper will first review some R packages on interactive graphics and their tooltip implementations. A new package \CRANpkg{ToOoOlTiPs} that provides customized tooltips for plot, is introduced. Some example plots will then be given to showcase how these tooltips help users to better read the graphics. 
+
+# Background
+
+Some packages on interactive graphics include \CRANpkg{plotly} [@plotly] that interfaces with Javascript for web-based interactive graphics, \CRANpkg{crosstalk} [@crosstalk] that specializes cross-linking elements across individual graphics.  The recent R Journal paper \CRANpkg{tsibbletalk} [@RJ-2021-050] provides a good example of including interactive graphics into an article for the journal. It has both a set of linked plots, and also an animated gif example, illustrating linking between time series plots and feature summaries.
+
+# Customizing tooltip design with \pkg{ToOoOlTiPs}
+
+\pkg{ToOoOlTiPs} is a packages for customizing tooltips in interactive graphics, it features these possibilities.
+
+# A gallery of tooltips examples
+
+The \CRANpkg{palmerpenguins} data [@palmerpenguins]  features three penguin species which has a lovely illustration by Alison Horst in Figure \@ref(fig:penguins-alison). 
+
+```{r penguins-alison, out.width = "100%", out.height = "30%", fig.cap = "Artwork by \\@allison\\_horst", fig.alt="A picture of three different penguins with their species: Chinstrap, Gentoo, and Adelie. "}
+knitr::include_graphics("penguins.png")
+```
+
+Table `r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(tab:penguins-tab-interactive)', '\\@ref(tab:penguins-tab-static)'))` prints at the first few rows of the `penguins` data:
+
+```{r penguins-tab-interactive, eval = knitr::is_html_output(), layout = "l-body-outset"}
+knitr::kable(head(penguins), format = "html", caption = "A basic table")
+```
+
+```{r penguins-tab-static, eval = knitr::is_latex_output()}
+knitr::kable(head(penguins), format = "latex", caption = "A basic table") %>% 
+  kableExtra::kable_styling(font_size = 7)
+```   
+
+Figure `r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:penguins-plotly)', '\\@ref(fig:penguins-ggplot)'))` shows an `r ifelse(knitr::is_html_output(), 'interactive', '')` plot of the penguins data, made using the `r knitr::asis_output(ifelse(knitr::is_html_output(), '\\CRANpkg{plotly}', '\\CRANpkg{ggplot2}'))` package. 
+
+```{r penguins-plotly, echo = TRUE, fig.height = 5, fig.cap="A basic interactive plot made with the plotly package on palmer penguin data. Three species of penguins are plotted with bill depth on the x-axis and bill length on the y-axis. When hovering on a point, a tooltip will show the exact value of the bill depth and length for that point, along with the species name.", include=knitr::is_html_output(), eval=knitr::is_html_output(), fig.alt = "A scatterplot of bill length against bill depth, both measured in millimetre. The three species are shown in different colours and loosely forms three clusters. Adelie has small bill length and large bill depth, Gentoo has small bill depth but large bill length, and Chinstrap has relatively large bill depth and bill length."}
+p <- penguins %>% 
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm, 
+             color = species)) + 
+  geom_point()
+ggplotly(p)
+```
+
+```{r penguins-ggplot, echo = TRUE, fig.height = 5, fig.cap="A basic non-interactive plot made with the ggplot2 package on palmer penguin data. Three species of penguins are plotted with bill depth on the x-axis and bill length on the y-axis. Visit the online article to access the interactive version made with the plotly package.", include=knitr::is_latex_output(), eval=knitr::is_latex_output()}
+penguins %>% 
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm, 
+             color = species)) + 
+  geom_point()
+```
+
+# Summary
+
+We have displayed various tooltips that are available in the package \pkg{ToOoOlTiPs}. 
