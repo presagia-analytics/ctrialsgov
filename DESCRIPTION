@@ -1,7 +1,7 @@
 Package: ctrialsgov
 Type: Package
 Title: Query Data from ClinicalTrials.gov
-Version: 0.4.3
+Version: 0.4.4
 Authors@R: c(
   person(given = "Taylor",
            family = "Arnold",
@@ -27,7 +27,7 @@ Description: Tools to create and query database from the U.S. National Library
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
-  R (>= 3.5.0)
+  R (>= 4.1.0)
 Imports:
   dplyr,
   utils,
@@ -39,6 +39,7 @@ Imports:
   stringi,
   tibble,
   DBI,
+  curl,
   readr,
   duckdb,
   methods,
@@ -46,7 +47,6 @@ Imports:
   tokenizers,
   htmlwidgets
 Suggests:
-  covr,
   knitr,
   rmarkdown,
   testthat (>= 3.0.0),

@@ -4,10 +4,12 @@
 \alias{ctgov_to_plotly.ctgov_bar_plot}
 \title{Convert a ctrialsgov Visualization to Plotly}
 \usage{
-\method{ctgov_to_plotly}{ctgov_bar_plot}(p, ...)
+\method{ctgov_to_plotly}{ctgov_bar_plot}(p, tooltip_fun = ctgov_gantt_labeller, ...)
 }
 \arguments{
 \item{p}{the plot returned by `ctgov_plot_timeline()`.}
+
+\item{tooltip_fun}{= ctgov_gantt_labeller}
 
 \item{...}{currently not used.}
 }

@@ -6,15 +6,14 @@
 \usage{
 ctgov_plot_timeline(
   x,
-  start_date = "start_date",
-  completion_date = "primary_completion_date",
-  label_column = "nct_id",
-  color = label_column,
-  tooltip = ctgov_gantt_labeller(x)
+  mapping = aes(nct_id = nct_id, start = start_date, end = primary_completion_date, y =
+    nct_id, fill = phase)
 )
 }
 \arguments{
 \item{x}{the data.frame object returned from a query.}
+
+\item{mapping}{the aesthetic mapping.}
 
 \item{start_date}{the start date column name. (Default is "start_date")}
 

@@ -144,10 +144,53 @@ The rest of the paper is laid out as follows.
 - How do we create the database the raw data set? Why did we choose DuckDB for this?
 - How do we create the derived data set? How is it different from the raw-data database?
 
+```{r, echo = FALSE, eval = FALSE}
+library(ctrialsgov)
+library(duckdb)
+library(DBI)
+
+con = dbConnect(duckdb(file.path("ctrialsgovdb", "ctrialsgov.duckdb")))
+ctgov_create_data(con, file.path("ctrialsgovdb", "ctrialsgov-derived.duckdb"))
+```
+
 # Querying trials
 
+```{r}
+ctgov_load_duckdb_file(file.path("ctrialsgovdb", "ctrialsgov-derived.duckdb"))
+```
+
+```{r}
+library(tibble)
+
+pembro = ctgov_query(
+  study_type = "Interventional",
+  sponsor_type = "INDUSTRY",
+  official_title_kw = c("Pembrolizumab", "KEYNOTE"),
+  sponsor_kw = "Merck") |>
+  as_tibble()
+
+nivo = ctgov_query(
+  study_type = "Interventional",
+  sponsor_type = "INDUSTRY",
+  official_title_kw = "Nivolumab",
+  sponsor_kw = "Bristol-Myers Squibb") |> 
+  as_tibble()
+
+atezo = ctgov_query(
+  study_type = "Interventional",
+  sponsor_type = "INDUSTRY",
+  official_title_kw = "Atezolizumab",
+  sponsor_kw = c("Hoffmann-La Roche", "Genentech, Inc.")) |>
+  as_tibble()
+```
 # Visualizing trials
 
+
+```{r}
+x = bind_rows(pembro, nivo, atezo)
+
+ctgov_plot_timeline(pembro, color = "phase")
+```
 - Timelines
 - Concurrent trials
 

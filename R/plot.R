@@ -12,18 +12,18 @@ ctgov_gantt_labeller <- function(x) {
   conditions <-
     map_chr(
       x$conditions,
-      ~ .x %>%
-        stri_split(fixed = "|") %>%
-        unlist() %>%
-        trimws() %>%
+      ~ .x |>
+        stri_split(fixed = "|") |>
+        unlist() |>
+        trimws() |>
         paste(collapse = "</br>&nbsp;&nbsp;&nbsp;&nbsp;", sep = "")
     )
 
-  interventions <-
-    map_chr(
-      x$interventions,
-      ~ paste0(.x$name, collapse = "</br>&nbsp;&nbsp;&nbsp;&nbsp;")
-    )
+#  interventions <-
+#    map_chr(
+#      x$interventions,
+#      ~ paste0(.x$name, collapse = "</br>&nbsp;&nbsp;&nbsp;&nbsp;")
+#    )
   paste0(
     "</br>", "NCT ID: ", trimws(x$nct_id), "</br>",
 #    "Status: ", x$status, "</br>",
@@ -31,7 +31,7 @@ ctgov_gantt_labeller <- function(x) {
     "Start Date: ", trimws(x$start_date), "</br>",
     "Completion Date: ", trimws(x$primary_completion_date), "</br>",
     "Conditions:</br>&nbsp;&nbsp;&nbsp;&nbsp;", conditions, "</br>",
-    "Interventions:</br>&nbsp;&nbsp;&nbsp;&nbsp;", interventions, "</br>",
+#    "Interventions:</br>&nbsp;&nbsp;&nbsp;&nbsp;", interventions, "</br>",
     "Enrollment: ", trimws(x$enrollment), "</br>",
     sep = ""
   )
@@ -40,6 +40,7 @@ ctgov_gantt_labeller <- function(x) {
 #' @title Plot a Timeline for a Set of Clinical Trials
 #'
 #' @param x the data.frame object returned from a query.
+#' @param mapping the aesthetic mapping. 
 #' @param start_date the start date column name. (Default is "start_date")
 #' @param completion_date the date the trial is set to be complete.
 #' (Default "primary_completion_date").
@@ -50,36 +51,37 @@ ctgov_gantt_labeller <- function(x) {
 #' @param tooltip the tooltips for each of trials.
 #' (Default is `ctgov_gantt_labeller(x)`).
 #'
-#' @importFrom ggplot2 ggplot aes_string geom_tile enexpr xlab ylab guides
+#' @importFrom ggplot2 ggplot aes geom_tile enexpr xlab ylab guides
 #' guide_legend
 #' @importFrom lubridate days
+#' @importFrom rlang quo_get_expr
 #' @seealso ctgov_gantt_labeller
 #' @export
 ctgov_plot_timeline <- function(
   x,
-  start_date = "start_date",
-  completion_date = "primary_completion_date",
-  label_column = "nct_id",
-  color = label_column,
-  tooltip = ctgov_gantt_labeller(x)) {
+  mapping = aes(nct_id = nct_id, start = start_date, 
+                end = primary_completion_date, 
+                y = nct_id, fill = phase)
+  ) {
 
-  x$width <- as.integer(x[[completion_date]]) - as.integer(x[[start_date]])
-  x$tooltip <- tooltip
-  x[[start_date]] <- x[[start_date]] + days(round(x$width / 2))
-  p <- ggplot(
-      data = x,
-      aes_string(
-        x = start_date,
-        y = label_column,
-        fill = color,
-        width = "width",
-        text = "tooltip"
-      )
-    ) +
+  start = as.character(quo_get_expr(mapping$start))
+  end = as.character(quo_get_expr(mapping$end))
+  y = as.character(quo_get_expr(mapping$y))
+  
+  x$width <- as.integer(x[[end]]) - as.integer(x[[start]])
+#  x$tooltip <- tooltip
+  x$center <- x[[start]] + days(round(x$width / 2))
+  x = x[order(x[[start]]),]
+  x[[y]] = factor(x[[y]], levels = x[[y]])
+  mapping = modifyList(mapping, aes(x = center, width = width))
+  p <- ggplot(data = x, mapping = mapping) +
     geom_tile(height = 0.8) +
-    ylab(label_column) +
-    xlab("Date") +
-    guides(fill = guide_legend(color))
+    ylab(y) +
+    xlab("Date")
+  if (!is.null(mapping$fill)) {  
+    fill = as.character(quo_get_expr(mapping$fill)) 
+    guides(fill = guide_legend(fill))
+  }
   class(p) <- c("ctgov_bar_plot", class(p))
   p
 }
@@ -93,12 +95,12 @@ ctgov_plot_timeline <- function(
 #'
 #' @importFrom plotly ggplotly
 #' @export
-ctgov_to_plotly <- function(p, ...) {
+ctgov_to_plotly = function(p, ...) {
   UseMethod("ctgov_to_plotly", p)
 }
 
 #' @export
-ctgov_to_plotly.default <- function(p, ...) {
+ctgov_to_plotly.default = function(p, ...) {
   stop(
     "Don't know how to create plotly plot from object of type:",
     paste(class(p), collapse = " ")
@@ -106,20 +108,23 @@ ctgov_to_plotly.default <- function(p, ...) {
 }
 
 #' @export
-ctgov_to_plotly.gg <- function(p, ...) {
+ctgov_to_plotly.gg = function(p, ...) {
   ggplotly(p, ...)
 }
 
 #' @title Convert a ctrialsgov Visualization to Plotly
 #'
 #' @param p the plot returned by `ctgov_plot_timeline()`.
+#' @param tooltip_fun = ctgov_gantt_labeller
 #' @param ... currently not used.
 #' @return a Plotly object
 #'
 #' @importFrom plotly ggplotly layout
 #' @importFrom htmlwidgets onRender
 #' @export
-ctgov_to_plotly.ctgov_bar_plot <- function(p, ...) {
+ctgov_to_plotly.ctgov_bar_plot = function(p, tooltip_fun = ctgov_gantt_labeller, ...) {
+
+  browser()
   class(p) <- class(p)[-1]
   pp <- ggplotly(p, tooltip = "tooltip")
   pp <-  plotly::layout(pp, hoverlabel = list(align = "left"))
