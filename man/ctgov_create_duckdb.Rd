@@ -17,7 +17,7 @@ directory in the file system.}
 defaults to \code{TRUE}}
 }
 \value{
-a database connection object
+a path to the duckDB database
 }
 \description{
 This function creates a local DuckDB version of the full CTrialsGov database

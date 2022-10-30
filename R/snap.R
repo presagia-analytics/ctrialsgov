@@ -16,6 +16,7 @@
 #' removed after the databases have been created? (Default is `TRUE`)
 #' @param verbose logical flag; should progress messages be printed? 
 #' (Default is `TRUE`)
+#' @importFrom utils unzip
 #' @importFrom curl curl curl_download
 #' @importFrom DBI dbDisconnect
 #' @export
@@ -45,9 +46,9 @@ ctgov_get_latest_snapshot = function(
     quiet = !verbose
   )
 
-  zip_files = unzip(destfile, list = TRUE)
+  zip_files = utils::unzip(destfile, list = TRUE)
 
-  unzip(destfile, exdir = tmp_dir)
+  utils::unzip(destfile, exdir = tmp_dir)
 
   unlink(c(db_path, db_derived_path))
   con = suppressWarnings(

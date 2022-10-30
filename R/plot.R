@@ -41,27 +41,19 @@ ctgov_gantt_labeller <- function(x) {
 #'
 #' @param x the data.frame object returned from a query.
 #' @param mapping the aesthetic mapping. 
-#' @param start_date the start date column name. (Default is "start_date")
-#' @param completion_date the date the trial is set to be complete.
-#' (Default "primary_completion_date").
-#' (Default is "primary_completion_date")
-#' @param label_column the column denoting the labels for the y-axis.
-#' (Default is "nct_id")
-#' @param color the column to be used for coloring. (Default is label_column)
-#' @param tooltip the tooltips for each of trials.
-#' (Default is `ctgov_gantt_labeller(x)`).
 #'
-#' @importFrom ggplot2 ggplot aes geom_tile enexpr xlab ylab guides
+#' @importFrom ggplot2 ggplot aes_string geom_tile enexpr xlab ylab guides
 #' guide_legend
 #' @importFrom lubridate days
 #' @importFrom rlang quo_get_expr
+#' @importFrom utils modifyList
 #' @seealso ctgov_gantt_labeller
 #' @export
 ctgov_plot_timeline <- function(
   x,
-  mapping = aes(nct_id = nct_id, start = start_date, 
-                end = primary_completion_date, 
-                y = nct_id, fill = phase)
+  mapping = aes_string(nct_id = "nct_id", start = "start_date", 
+                       end = "primary_completion_date", 
+                       y = "nct_id", fill = "phase")
   ) {
 
   start = as.character(quo_get_expr(mapping$start))
@@ -73,7 +65,7 @@ ctgov_plot_timeline <- function(
   x$center <- x[[start]] + days(round(x$width / 2))
   x = x[order(x[[start]]),]
   x[[y]] = factor(x[[y]], levels = x[[y]])
-  mapping = modifyList(mapping, aes(x = center, width = width))
+  mapping = utils::modifyList(mapping, aes_string(x = "center", width = "width"))
   p <- ggplot(data = x, mapping = mapping) +
     geom_tile(height = 0.8) +
     ylab(y) +

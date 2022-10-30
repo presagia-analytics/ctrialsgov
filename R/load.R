@@ -21,7 +21,7 @@
 #'                  defaults to \code{TRUE}
 #'
 #' @author Taylor B. Arnold, \email{taylor@@dvlab.io}
-#' @return a database connection object
+#' @return a path to the duckDB database
 #'
 #' @export
 #' @importFrom duckdb duckdb
@@ -65,12 +65,10 @@ ctgov_create_duckdb <- function(
     dbWriteTable(conn = conn, name = tables[j], value = z, overwrite = TRUE)
   })
 
-  # close connection and reopen in a read only format
+  # close the connection
   check_clear_conn(conn)
-  db <- duckdb(dbdir, read_only = TRUE)
-  conn <- dbConnect(db, read_only = TRUE)
 
-  return(conn)
+  return(dbdir)
 }
 
 #' Initialize the connection
@@ -79,7 +77,7 @@ ctgov_create_duckdb <- function(
 #' creates a parsed and cached version of the clinical trials dataset in
 #' memory in R. This makes other function calls relatively efficient.
 #'
-#' @param con      an DBI connection object to the database
+#' @param inputdir A path to the input duckDB database
 #' @param dbdir    Location for the output database files. Should be a path to
 #'                 an existing directory in the file system. By default will
 #'                 place files in the location where the package is installed.
@@ -97,7 +95,7 @@ ctgov_create_duckdb <- function(
 #' @importFrom dplyr filter if_else transmute group_by ungroup left_join nest_by desc arrange select inner_join
 #' @importFrom stringi stri_trim stri_replace_all stri_sub stri_paste
 #' @importFrom lubridate today
-ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
+ctgov_create_data <- function(inputdir, dbdir = NULL, verbose = TRUE) {
   assert(is.logical(verbose) & length(verbose) == 1L)
 
   # If dbdir is missing save the dataset
@@ -105,6 +103,10 @@ ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
   {
     dbdir <- file.path(system.file("extdata", package = "ctrialsgov"), "ctdb")
   }
+
+  # open the duckDB connection
+  db <- duckdb(inputdir, read_only = TRUE)
+  con <- dbConnect(db, read_only = TRUE)
 
   # create a connection to the output dataset
   check_clear_conn(.volatiles$con)
@@ -373,7 +375,8 @@ ctgov_create_data <- function(con, dbdir = NULL, verbose = TRUE) {
     conn = .volatiles$con, name = "epoint", value = tbl_epoint, overwrite = TRUE
   )
 
-  # close connection and reopen in a read only format
+  # close connections and reopen in a read only format
+  check_clear_conn(con)
   check_clear_conn(.volatiles$con)
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db, read_only = TRUE)
@@ -542,7 +545,6 @@ ctgov_load_rds_file <- function(file, dbdir = NULL) {
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db)
   .volatiles$memory <- dbConnect(duckdb::duckdb(), dbdir=":memory:")
-  reg.finalizer(.volatiles, finalize_conn, onexit = TRUE)
 
   # load the tables
   z <- readRDS(file)
@@ -552,13 +554,13 @@ ctgov_load_rds_file <- function(file, dbdir = NULL) {
       conn = .volatiles$con, name = tbl, value = z[[tbl]], overwrite = TRUE
     )
   }
-
   make_categories()
 
   # close connection and reopen in a read only format
-  DBI::dbDisconnect(.volatiles$con, shutdown = TRUE)
+  check_clear_conn(.volatiles$con)
   db <- duckdb::duckdb(dbdir)
   .volatiles$con <- dbConnect(db, read_only = TRUE)
+  reg.finalizer(.volatiles, finalize_conn, onexit = TRUE)
 }
 
 #' Load Database from DuckDB File

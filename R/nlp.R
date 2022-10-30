@@ -220,7 +220,7 @@ make_token_counts <- function(
      x = rep(1, length(docs)),
      dims = c(length(tokens), length(vocabulary))
    )
-   term_counts <- methods::as(term_counts, "dgTMatrix")
+   term_counts <- methods::as(term_counts, "TsparseMatrix")
    colnames(term_counts) <- vocabulary
 
    return(term_counts)
