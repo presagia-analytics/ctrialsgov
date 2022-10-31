@@ -4,10 +4,10 @@
 \alias{ctgov_create_data}
 \title{Initialize the connection}
 \usage{
-ctgov_create_data(con, dbdir = NULL, verbose = TRUE)
+ctgov_create_data(inputdir, dbdir = NULL, verbose = TRUE)
 }
 \arguments{
-\item{con}{an DBI connection object to the database}
+\item{inputdir}{A path to the input duckDB database}
 
 \item{dbdir}{Location for the output database files. Should be a path to
 an existing directory in the file system. By default will

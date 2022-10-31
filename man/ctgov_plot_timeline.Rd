@@ -6,28 +6,14 @@
 \usage{
 ctgov_plot_timeline(
   x,
-  mapping = aes(nct_id = nct_id, start = start_date, end = primary_completion_date, y =
-    nct_id, fill = phase)
+  mapping = aes_string(nct_id = "nct_id", start = "start_date", end =
+    "primary_completion_date", y = "nct_id", fill = "phase")
 )
 }
 \arguments{
 \item{x}{the data.frame object returned from a query.}
 
 \item{mapping}{the aesthetic mapping.}
-
-\item{start_date}{the start date column name. (Default is "start_date")}
-
-\item{completion_date}{the date the trial is set to be complete.
-(Default "primary_completion_date").
-(Default is "primary_completion_date")}
-
-\item{label_column}{the column denoting the labels for the y-axis.
-(Default is "nct_id")}
-
-\item{color}{the column to be used for coloring. (Default is label_column)}
-
-\item{tooltip}{the tooltips for each of trials.
-(Default is `ctgov_gantt_labeller(x)`).}
 }
 \description{
 Plot a Timeline for a Set of Clinical Trials
