@@ -55,7 +55,6 @@ ctgov_get_latest_snapshot = function(
     ctgov_create_duckdb(tmp_dir, db_path, verbose = verbose)
   )
   ctgov_create_data(con, db_derived_path, verbose = verbose)
-  dbDisconnect(con)
 
   if (cleanup) {
     unlink(file.path(tmp_dir, zip_files$Name))
