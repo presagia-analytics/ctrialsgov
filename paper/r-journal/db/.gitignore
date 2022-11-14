@@ -1,0 +1,4 @@
+ctgov.duckdb
+ctgov.duckdb.wal
+ctgov-derived.duckdb
+ctgov-derived.duckdb.wal
