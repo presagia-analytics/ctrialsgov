@@ -116,7 +116,6 @@ ctgov_to_plotly.gg = function(p, ...) {
 #' @export
 ctgov_to_plotly.ctgov_bar_plot = function(p, tooltip_fun = ctgov_gantt_labeller, ...) {
 
-  browser()
   class(p) <- class(p)[-1]
   pp <- ggplotly(p, tooltip = "tooltip")
   pp <-  plotly::layout(pp, hoverlabel = list(align = "left"))
