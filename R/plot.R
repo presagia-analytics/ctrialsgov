@@ -117,7 +117,7 @@ ctgov_to_plotly.gg = function(p, ...) {
 ctgov_to_plotly.ctgov_bar_plot = function(p, tooltip_fun = ctgov_gantt_labeller, ...) {
 
   class(p) <- class(p)[-1]
-  pp <- ggplotly(p, tooltip = "tooltip")
+  pp <- ggplotly(p, tooltip = c("y", "fill", "text", "ctgov_label"))
   pp <-  plotly::layout(pp, hoverlabel = list(align = "left"))
 
   # this gets the y-axis category values
