@@ -5,9 +5,9 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/presagia-analytics/ctrialsgov/workflows/R-CMD-check/badge.svg)](https://github.com/presagia-analytics/ctrialsgov/actions)
 [![Codecov test
 coverage](https://app.codecov.io/gh/presagia-analytics/clinical-trials-taylor/branch/main/graph/badge.svg)](https://app.codecov.io/gh/presagia-analytics/ctrialsgov?branch=main)
+[![R-CMD-check](https://github.com/presagia-analytics/ctrialsgov/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/presagia-analytics/ctrialsgov/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Installation
