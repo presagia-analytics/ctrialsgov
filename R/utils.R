@@ -137,8 +137,8 @@ check_clear_conn <- function(conn) {
 
 #' @importFrom dplyr filter sql
 query_kwds <- function(tbl, kwds, column, ignore_case = TRUE, match_all = FALSE) {
-  kwds <- paste0("%", kwds, "%") |>
-    gsub("'", "''", x = _)
+  kwds <- paste0("%", kwds, "%") 
+  kwds <-  gsub("'", "''", kwds)
   if (ignore_case) {
     like <- " ilike "
   } else{
