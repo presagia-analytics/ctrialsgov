@@ -16,16 +16,32 @@
 #' removed after the databases have been created? (Default is `TRUE`)
 #' @param verbose logical flag; should progress messages be printed? 
 #' (Default is `TRUE`)
+#' @param ask_understand logical flag; does the user have to answer whether or
+#' not they understand they are going to download the database?
 #' @importFrom utils unzip
 #' @importFrom curl curl curl_download
 #' @importFrom DBI dbDisconnect
+#' @importFrom yesno yesno
 #' @export
 ctgov_get_latest_snapshot = function(
   db_path = "ctgov.duckdb",
   db_derived_path = "ctgov-derived.duckdb",
   tmp_dir = tempdir(),
   cleanup = TRUE,
-  verbose = TRUE) {
+  verbose = TRUE,
+  ask_understand = TRUE) {
+
+  if (ask_understand) {
+    if (!isTRUE(
+          yesno(
+            paste0("Do you understand that you are about to download the\n",
+                  "entire, current database snapshot?")
+          )
+        )
+      ) {
+      return(invisible(NULL))
+    }
+  }
 
   latest_entry = curl("https://aact.ctti-clinicaltrials.org/pipe_files") |>
     readLines() |>

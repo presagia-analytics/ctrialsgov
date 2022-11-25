@@ -9,7 +9,8 @@ ctgov_get_latest_snapshot(
   db_derived_path = "ctgov-derived.duckdb",
   tmp_dir = tempdir(),
   cleanup = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ask_understand = TRUE
 )
 }
 \arguments{
@@ -26,6 +27,9 @@ removed after the databases have been created? (Default is `TRUE`)}
 
 \item{verbose}{logical flag; should progress messages be printed? 
 (Default is `TRUE`)}
+
+\item{ask_understand}{logical flag; does the user have to answer whether or
+not they understand they are going to download the database?}
 }
 \description{
 This function does the following.

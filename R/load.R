@@ -71,6 +71,23 @@ ctgov_create_duckdb <- function(
   return(dbdir)
 }
 
+#' Disconnect from the Database
+#'
+#' This function disconnects all current database connections. This is 
+#' done by removing the ctrialsgov:::.volatiles package environment. Users
+#' can then reconnect either from the current process or other processes.
+#' @return does not return any value; used only for side effects
+#' @export
+ctgov_disconnect <- function() {
+  for (name in ls(.volatiles)) {
+    if (inherits(.volatiles[[name]], "duckdb_connection")) {
+      dbDisconnect(.volatiles[[name]], shutdown = TRUE)
+    } 
+    rm(list = name, envir = .volatiles)
+  }
+  return(invisible(TRUE))
+}
+
 #' Initialize the connection
 #'
 #' This function must be run prior to other functions in the package. It
