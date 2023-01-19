@@ -161,3 +161,7 @@ ctgov_query(
   ctgov_plot_timeline() +
     ggplot2::theme_minimal()
 ```
+
+```{r echo = FALSE}
+ctgov_disconnect()
+```

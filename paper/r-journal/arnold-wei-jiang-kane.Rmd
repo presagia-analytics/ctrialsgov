@@ -54,7 +54,7 @@ bibliography: RJreferences.bib
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(ctrialsgov)
-library(tidyverse)
+library(dplyr)
 theme_set(theme_minimal())
 ```
 
@@ -227,7 +227,7 @@ at the start of the each session.
 ctgov_load_duckdb_file(file.path("db", "ctgov-derived.duckdb"))
 ```
 
-The primary function for querying the dataset is called `ctgov_query`. It can
+The primary function for querying the dataset is called `ctgov_query()`. It can
 be called after using any of the functions in the previous section. Here
 are a few examples of how the function works. We will see a few examples here;
 see the help pages for a complete list of options. There are a number of fields
@@ -316,8 +316,8 @@ ctgov_query() |>
 
 In addition to the main query function, the package includes five additional
 query functions to search the other tables in the processed dataset.
-Specifically, these are `ctgov_query_design`, `ctgov_query_endpoint`,
-`ctgov_query_intervention`, `ctgov_query_outcome`, and `ctgov_query_references`.
+Specifically, these are `ctgov_query_design()`, `ctgov_query_endpoint()`,
+`ctgov_query_intervention()`, `ctgov_query_outcome()`, and `ctgov_query_references()`.
 Each table can be joined through the "nct_id" key as well as queried based on 
 the columns present in the datasets. The output of all these functions is a
 normal R `tibble` object that can be plotted directly. The package includes
