@@ -45,7 +45,7 @@ ctgov_get_latest_snapshot = function(
 
   latest_entry = curl("https://aact.ctti-clinicaltrials.org/pipe_files") |>
     readLines() |> 
-    (\(x) x[grep("pipe-delimited-export.zip", x)[1]])()
+    (\(x) x[grep("_export.zip", x)[1]])()
   latest_entry = strsplit("\\s+", x = latest_entry) |>
     unlist() |>
     suppressWarnings()

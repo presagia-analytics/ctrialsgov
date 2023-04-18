@@ -1,7 +1,7 @@
 Package: ctrialsgov
 Type: Package
 Title: Query Data from ClinicalTrials.gov
-Version: 0.4.7
+Version: 0.4.8
 Authors@R: c(
   person(given = "Taylor",
            family = "Arnold",
@@ -58,4 +58,4 @@ VignetteBuilder:
 LazyData: true
 LazyDataCompression: bzip2
 Config/testthat/edition: 3
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3

@@ -55,6 +55,7 @@ bibliography: RJreferences.bib
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(ctrialsgov)
 library(dplyr)
+library(ggplot2)
 theme_set(theme_minimal())
 ```
 
