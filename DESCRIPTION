@@ -1,7 +1,7 @@
 Package: ctrialsgov
 Type: Package
 Title: Query Data from ClinicalTrials.gov
-Version: 0.4.9
+Version: 0.4.10
 Authors@R: c(
   person(given = "Taylor",
            family = "Arnold",

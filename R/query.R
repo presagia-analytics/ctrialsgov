@@ -241,7 +241,7 @@ ctgov_query <- function(
     assert_data_loaded()
     z <- dplyr::tbl(.volatiles$con, "join")
   } else {
-    duckdb::duckdb_register(.volatiles$memory, "join", data)
+    duckdb::duckdb_register(.volatiles$memory, "join", data, overwrite = TRUE)
     z <- dplyr::tbl(.volatiles$memory, "join")
   }
 
@@ -460,7 +460,7 @@ ctgov_query_design <- function(
     assert_data_loaded()
     z <- dplyr::tbl(.volatiles$con, "design")
   } else {
-    duckdb::duckdb_register(.volatiles$memory, "design", data)
+    duckdb::duckdb_register(.volatiles$memory, "design", data, overwrite = TRUE)
     z <- dplyr::tbl(.volatiles$memory, "design")
   }
 
@@ -541,7 +541,7 @@ ctgov_query_intervention <- function(
     assert_data_loaded()
     z <- dplyr::tbl(.volatiles$con, "inter")
   } else {
-    duckdb::duckdb_register(.volatiles$memory, "inter", data)
+    duckdb::duckdb_register(.volatiles$memory, "inter", data, overwrite = TRUE)
     z <- dplyr::tbl(.volatiles$memory, "inter")
   }
 
@@ -612,7 +612,7 @@ ctgov_query_references <- function(
     assert_data_loaded()
     z <- dplyr::tbl(.volatiles$con, "refs")
   } else {
-    duckdb::duckdb_register(.volatiles$memory, "refs", data)
+    duckdb::duckdb_register(.volatiles$memory, "refs", data, overwrite = TRUE)
     z <- dplyr::tbl(.volatiles$memory, "refs")
   }
 
@@ -677,7 +677,7 @@ ctgov_query_outcome <- function(
     assert_data_loaded()
     z <- dplyr::tbl(.volatiles$con, "outcome")
   } else {
-    duckdb::duckdb_register(.volatiles$memory, "outcome", data)
+    duckdb::duckdb_register(.volatiles$memory, "outcome", data, overwrite = TRUE)
     z <- dplyr::tbl(.volatiles$memory, "outcome")
   }
 
@@ -744,7 +744,7 @@ ctgov_query_endpoint <- function(
     assert_data_loaded()
     z <- dplyr::tbl(.volatiles$con, "epoint")
   } else {
-    duckdb::duckdb_register(.volatiles$memory, "epoint", data)
+    duckdb::duckdb_register(.volatiles$memory, "epoint", data, overwrite = TRUE)
     z <- dplyr::tbl(.volatiles$memory, "epoint")
   }
 
