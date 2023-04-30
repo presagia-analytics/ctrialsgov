@@ -55,14 +55,18 @@ ctgov_create_duckdb <- function(
   for (j in seq_along(tables))
   suppressWarnings({
     cmsg(verbose, "[%s] LOADING TABLE '%s'\n", isotime(), tables[j])
-    z <- read_delim(
-      file.path(basedir, paste0(tables[j], ".txt")),
-      delim = "|",
-      show_col_types = FALSE,
-      guess_max = 1e4,
-      progress = FALSE
-    )
-    dbWriteTable(conn = conn, name = tables[j], value = z, overwrite = TRUE)
+    fpath <- file.path(basedir, paste0(tables[j], ".txt"))
+    if (file.exists(fpath))
+    {
+      z <- read_delim(
+        fpath,
+        delim = "|",
+        show_col_types = FALSE,
+        guess_max = 1e4,
+        progress = FALSE
+      )
+      dbWriteTable(conn = conn, name = tables[j], value = z, overwrite = TRUE)      
+    }
   })
 
   # close the connection
