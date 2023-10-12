@@ -367,7 +367,7 @@ ctgov_create_data <- function(inputdir, dbdir = NULL, verbose = TRUE) {
   tbl_outcome <- dplyr::inner_join(
     tbl_outcome, tbl_outcome_ana, by = c("id" = "outcome_id")
   )
-  tbl_outcome <- dplyr::filter(tbl_outcome, .data$p_value_modifier != "=")
+  #tbl_outcome <- dplyr::filter(tbl_outcome, (.data$p_value_modifier != "="))
   tbl_outcome <- dplyr::select(tbl_outcome, -.data$id, -.data$p_value_modifier)
   dbWriteTable(
     conn = .volatiles$con, name = "outcome", value = tbl_outcome, overwrite = TRUE
