@@ -60,6 +60,8 @@ Suggests:
 VignetteBuilder:
   knitr
 LazyData: true
+URL: https://presagia-analytics.github.io/ctrialsgov/, https://github.com/presagia-analytics/ctrialsgov
+BugReports: https://github.com/presagia-analytics/ctrialsgov/issues
 LazyDataCompression: bzip2
 Config/testthat/edition: 3
 RoxygenNote: 7.2.3
