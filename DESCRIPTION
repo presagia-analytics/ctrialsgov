@@ -1,7 +1,7 @@
 Package: ctrialsgov
 Type: Package
 Title: Query Data from ClinicalTrials.gov
-Version: 0.4.10-2
+Version: 0.4.12
 Authors@R: c(
   person(given = "Taylor",
            family = "Arnold",
@@ -33,23 +33,24 @@ Encoding: UTF-8
 Depends:
   R (>= 4.1.0)
 Imports:
+  cli,
+  curl,
+  DBI,
   dplyr,
-  utils,
+  duckdb,
   ggplot2,
+  htmlwidgets,
   lubridate,
+  Matrix,
+  methods,
   plotly,
   purrr,
+  readr,
   rlang,
   stringi,
   tibble,
-  DBI,
-  curl,
-  readr,
-  duckdb,
-  methods,
-  Matrix,
   tokenizers,
-  htmlwidgets,
+  utils,
   yesno
 Suggests:
   knitr,
@@ -64,4 +65,4 @@ URL: https://presagia-analytics.github.io/ctrialsgov/, https://github.com/presag
 BugReports: https://github.com/presagia-analytics/ctrialsgov/issues
 LazyDataCompression: bzip2
 Config/testthat/edition: 3
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
